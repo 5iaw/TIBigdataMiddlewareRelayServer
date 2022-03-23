@@ -2,7 +2,7 @@ import requests
 import json
 import account.BE_http as BE
 
-r = requests.post("http://"+BE.ip+":"+BE.port+"/preprocessing", json = {
+r = requests.post("https://"+BE.ip+":"+BE.port+"/preprocessing",verify=False, json = {
     "userEmail": "21800520@handong.edu",
     "keyword": "북한",
     "savedDate": "2021-09-07T07:01:07.137Z",
@@ -14,7 +14,7 @@ r = requests.post("http://"+BE.ip+":"+BE.port+"/preprocessing", json = {
 
 print(r.text)
 
-r = requests.post("http://"+BE.ip+":"+BE.port+"/textmining", json ={
+r = requests.post("https://"+BE.ip+":"+BE.port+"/textmining",verify=False, json ={
     "userEmail": "21800520@handong.edu",
     "keyword": "북한",
     "savedDate": "2021-09-07T07:01:07.137Z",
