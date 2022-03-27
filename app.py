@@ -40,7 +40,7 @@ def test():
     elif request.method == 'POST':
         data = request.json
 
-        return "사용자"+data[userEmail]+"이(가) 확인되었습니다."
+        return "사용자"+data["userEmail"]+"이(가) 확인되었습니다."
 
 import account.FE_flask as FERS
 import account.kubic_sslFile as kubic_ssl
@@ -48,5 +48,5 @@ import account.kubic_sslFile as kubic_ssl
 if __name__ == "__main__":
 
     context=(kubic_ssl.crt,kubic_ssl.key)
-    app.run(host=FERS.ip, port=FERS.port, ssl_context=context, debug=True)
+    app.run(host=FERS.hostIp, port=FERS.port, ssl_context=context, debug=True)
 
