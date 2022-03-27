@@ -130,3 +130,6 @@ dmypy.json
 
 # IP, POST info
 /account
+
+# log file
+/log_flask
