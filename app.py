@@ -8,6 +8,21 @@ import account.BE_flask as BE
 # flask 객체
 app = Flask(__name__) # 정적 파일과 템플릿을 찾는데 쓰인다고 한다. 무슨소리일까..
 
+@app.after_request
+def after_request(response):
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+  return response
+
+@app.route('/preprocessing', methods=['GET', 'POST'])
+def preprocessing():
+    print("/preprocessing"+"request"+"recieved")
+    if request.method == 'POST':
+        data = request.json
+        print(data)
+        r = requests.post("https://"+BE.ip+":"+BE.port+"/preprocessing",verify=False, json =data).text
+        return r
 
 @app.route('/textmining', methods=['GET', 'POST'])
 def textmining():
