@@ -133,3 +133,6 @@ dmypy.json
 
 # log file
 /log_flask
+
+# test file
+/test

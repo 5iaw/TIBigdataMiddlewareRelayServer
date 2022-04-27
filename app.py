@@ -10,10 +10,10 @@ app = Flask(__name__) # 정적 파일과 템플릿을 찾는데 쓰인다고 한
 
 @app.after_request
 def after_request(response):
-  response.headers.add('Access-Control-Allow-Origin', '*')
-  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
-  return response
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+    return response
 
 @app.route('/preprocessing', methods=['GET', 'POST'])
 def preprocessing():
@@ -21,8 +21,8 @@ def preprocessing():
     if request.method == 'POST':
         data = request.json
         print(data)
-        r = requests.post("https://"+BE.ip+":"+BE.port+"/preprocessing",verify=False, json =data).text
-        return r
+    r = requests.post("https://"+BE.ip+":"+BE.port+"/preprocessing",verify=False, json =data).text
+    return r
 
 @app.route('/textmining', methods=['GET', 'POST'])
 def textmining():
@@ -30,8 +30,18 @@ def textmining():
     if request.method == 'POST':
         data = request.json
         print(data)
-        r = requests.post("https://"+BE.ip+":"+BE.port+"/textmining",verify=False, json =data).text
-        return r
+    r = requests.post("https://"+BE.ip+":"+BE.port+"/textmining",verify=False, json =data).text
+    return r
+
+@app.route('/tfidfTable', methods=['GET', 'POST'])
+def tfidfTable():
+    #app = Flask(__name__)
+    #app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+    if request.method == 'POST':
+            data = request.json 
+    r = requests.post("https://"+BE.ip+":"+BE.port+"/tfidfTable",verify=False, json =data).text
+    return r
+
 
 @app.route('/test', methods=['GET', 'POST'])
 def test():
