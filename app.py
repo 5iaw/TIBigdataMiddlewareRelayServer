@@ -33,13 +33,17 @@ def textmining():
     r = requests.post("https://"+BE.ip+":"+BE.port+"/textmining",verify=False, json =data).text
     return r
 
-@app.route('/tfidfTable', methods=['GET', 'POST'])
+@app.route('/countTable', methods=['GET', 'POST'])
 def tfidfTable():
     #app = Flask(__name__)
     #app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+    print("*************/tfidfTable request recieved")
     if request.method == 'POST':
             data = request.json 
-    r = requests.post("https://"+BE.ip+":"+BE.port+"/tfidfTable",verify=False, json =data).text
+            print(data)
+    else:
+        return "request method is not POST"
+    r = requests.post("https://"+BE.ip+":"+BE.port+"/countTable",verify=False, json =data).text
     return r
 
 
