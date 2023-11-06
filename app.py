@@ -34,10 +34,10 @@ def textmining():
     return r
 
 @app.route('/countTable', methods=['GET', 'POST'])
-def tfidfTable():
+def countTable():
     #app = Flask(__name__)
     #app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
-    print("*************/tfidfTable request recieved")
+    print("*************/counTable request recieved")
     if request.method == 'POST':
             data = request.json 
             print(data)
