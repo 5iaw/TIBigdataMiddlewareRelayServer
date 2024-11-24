@@ -3,8 +3,8 @@ import json
 import requests
 from flask import jsonify, request, Response
 from requests.auth import HTTPBasicAuth
-from app.services.webhdfs import webReadFile, webhdfs_request
-from app.services.mongo_file import resolve_hdfs_paths
+from services.webhdfs import webReadFile, webhdfs_request
+from services.mongo_file import resolve_hdfs_paths
 from datetime import datetime
 from hdfs import InsecureClient
 

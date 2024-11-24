@@ -20,7 +20,7 @@ from bson.objectid import ObjectId
 import os
 
 from pymongo import MongoClient
-from services.es_to_hdfs import transfer_es_data_to_hdfs_with_mongo
+from services.es_to_hdfs import *
 from services.mongo_file import (
     create_folder,
     delete_file_folder_by_id_with_hdfs,
@@ -38,20 +38,7 @@ from services.webhdfs import (
     webUploadFileToHDFS,
 )
 
-from services.input_submit_jobs import (
-    get_log,
-    get_status,
-    submit_ngrams_job,
-    submit_sma_job,
-    submit_wordcount_job,
-    submit_kmeans_job,
-    submit_w2v_job,
-    submit_tfidf_job,
-    submit_lda_job,
-    get_analysis_result,
-    submit_hclustering_job,
-    submit_ner_job,
-)
+from services.input_submit_jobs import *
 
 from services.submit_jobs import *
 from services.es import *
@@ -529,70 +516,70 @@ input_livy_bp = Blueprint("input_livy_bp", __name__)
 
 
 @app.route("/livy/submit_wordcount", methods=["POST"])
-def route_submit_wordcount_job():
-    return submit_wordcount_job()
+def route_submit_wordcount_job1():
+    return submit_wordcount_job1()
 
 
 @app.route("/livy/submit_kmeans", methods=["POST"])
-def route_submit_kmeans_job():
-    return submit_kmeans_job()
+def route_submit_kmeans_job1():
+    return submit_kmeans_job1()
 
 
 @app.route("/livy/submit_w2v", methods=["POST"])
-def route_submit_w2v_job():
-    return submit_w2v_job()
+def route_submit_w2v_job1():
+    return submit_w2v_job1()
 
 
 @app.route("/livy/submit_tfidf", methods=["POST"])
-def route_submit_tfidf_job():
-    return submit_tfidf_job()
+def route_submit_tfidf_job1():
+    return submit_tfidf_job1()
 
 
 @app.route("/livy/submit_lda", methods=["POST"])
-def route_submit_lda_job():
-    return submit_lda_job()
+def route_submit_lda_job1():
+    return submit_lda_job1()
 
 
 @app.route("/livy/submit_sma", methods=["POST"])
-def route_submit_sma_job():
-    return submit_sma_job()
+def route_submit_sma_job1():
+    return submit_sma_job1()
 
 
 @app.route("/livy/submit_ngrams", methods=["POST"])
-def route_submit_ngrams_job():
-    return submit_ngrams_job()
+def route_submit_ngrams_job1():
+    return submit_ngrams_job1()
 
 
 @app.route("/livy/submit_hclustering", methods=["POST"])
-def route_submit_hclustering_job():
-    return submit_hclustering_job()
+def route_submit_hclustering_job1():
+    return submit_hclustering_job1()
 
 
 @app.route("/livy/submit_ner", methods=["POST"])
-def route_submit_ner_job():
-    return submit_ner_job()
+def route_submit_ner_job1():
+    return submit_ner_job1()
 
 
 @app.route("/livy/status/<int:batch_id>", methods=["GET"])
-def route_get_status(batch_id):
+def route_get_status1(batch_id):
     owner = request.args.get("owner")
-    return get_status(batch_id, owner=owner)
+    return get_status1(batch_id, owner=owner)
 
 
 @app.route("/livy/log/<int:batch_id>", methods=["GET"])
-def route_get_log(batch_id):
+def route_get_log1(batch_id):
     owner = request.args.get("owner")
-    return get_log(batch_id, owner=owner)
+    return get_log1(batch_id, owner=owner)
 
 
 @app.route("/livy/analysis", methods=["GET"])
-def route_get_analysis_result():
-    return get_analysis_result()
+def route_get_analysis_result1():
+    return get_analysis_result1()
 
 
 @app.route("/livy/test-connection", methods=["GET"])
-def route_test_connection():
-    return test_connection()
+def route_test_connection1():
+    return test_connection1()
 
 # es file analysis
 @app.route('/es/connTest', methods=['GET'])
@@ -602,6 +589,10 @@ def esTest_routes():
 @app.route('/es/esQuery', methods=['POST'])
 def es_Query_routes():
     return es_query()
+
+@app.route('/spark/input-files', methods=['POST'])
+def route_input_files():
+    return save_input_files()
 
 @app.route('/spark/submit_wordcount', methods=['POST'])
 def route_submit_wordcount_job():

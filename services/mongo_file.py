@@ -1,5 +1,5 @@
 # mongo_file.py
-from app.services.webhdfs import webDeleteFileFromHDFS
+from services.webhdfs import webDeleteFileFromHDFS
 from pymongo import MongoClient
 from urllib.parse import quote_plus
 import os

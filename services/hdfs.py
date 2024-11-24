@@ -2,7 +2,7 @@ from flask import jsonify
 from hdfs import InsecureClient
 import os
 
-from app.services.file_system import save_uploaded_file
+from services.file_system import save_uploaded_file
 knox_url = "https://localhost:8443/gateway/sandbox/webhdfs/v1/"
 client = InsecureClient(knox_url, user='ubuntu')
 

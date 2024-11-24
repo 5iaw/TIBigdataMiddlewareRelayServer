@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
 from flask import Flask, json, jsonify, request
 from hdfs import InsecureClient
-from app.services.mongo_file import insert_file_folder
-from app.utils.es_utils import getESQueryByID
+from services.mongo_file import insert_file_folder
+from utils.es_utils import getESQueryByID
 
 client = InsecureClient('http://localhost:9870', user='ubuntu')
 INDEX = "kubic_paper,kubic_news"
