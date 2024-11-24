@@ -52,8 +52,12 @@ from services.input_submit_jobs import (
     submit_hclustering_job,
     submit_ner_job,
 )
+
+from services.submit_jobs import *
+from services.es import *
+
 from flask.blueprints import Blueprint
-from services.submit_jobs import test_connection
+
 from requests.auth import HTTPBasicAuth
 
 MONGO_URI = f"mongodb://localhost:27017/"
@@ -589,6 +593,82 @@ def route_get_analysis_result():
 @app.route("/livy/test-connection", methods=["GET"])
 def route_test_connection():
     return test_connection()
+
+# es file analysis
+@app.route('/es/connTest', methods=['GET'])
+def esTest_routes():
+    return esTest()
+
+@app.route('/es/esQuery', methods=['POST'])
+def es_Query_routes():
+    return es_query()
+
+@app.route('/spark/submit_wordcount', methods=['POST'])
+def route_submit_wordcount_job():
+    return submit_wordcount_job()
+
+@app.route('/spark/submit_kmeans', methods=['POST'])
+def route_submit_kmeans_job():
+    return submit_kmeans_job()
+
+@app.route('/spark/submit_w2v', methods=['POST'])
+def route_submit_w2v_job():
+    return submit_w2v_job()
+
+@app.route('/spark/submit_tfidf', methods=['POST'])
+def route_submit_tfidf_job():
+    return submit_tfidf_job()
+
+@app.route('/spark/submit_lda', methods=['POST'])
+def route_submit_lda_job():
+    return submit_lda_job()
+
+@app.route('/spark/submit_sma', methods=['POST'])
+def route_submit_sma_job():
+    return submit_sma_job()
+
+@app.route('/spark/submit_ngrams', methods=['POST'])
+def route_submit_ngrams_job():
+    return submit_ngrams_job()
+
+@app.route('/spark/submit_hclustering', methods=['POST'])
+def route_submit_hclustering_job():
+    return submit_hclustering_job()
+
+@app.route('/spark/submit_ner', methods=['POST'])
+def route_submit_ner_job():
+    return submit_ner_job()
+
+@app.route('/spark/status/<int:batch_id>', methods=['GET'])
+def route_get_status(batch_id):
+    return get_status(batch_id)
+
+@app.route('/spark/log/<int:batch_id>', methods=['GET'])
+def route_get_log(batch_id):
+    return get_log(batch_id)
+
+@app.route('/spark/analysis', methods=['GET'])
+def route_get_analysis_result():
+    return get_analysis_result()
+
+@app.route('/spark/test-connection', methods=['GET'])
+def route_test_connection():
+    return test_connection()
+
+@app.route('/spark/read_file', methods=['GET'])
+def webhdfs_read_file_route():
+    output_path = request.args.get('output_path', '')
+    print(f"Received output_path: {output_path}")  # Debugging print
+    try:
+        result = webReadFile(output_path)
+        if 'file_content' in result:
+            return Response(result['file_content'], mimetype='text/plain')
+        else:
+            return jsonify(result), 500
+    except Exception as e:
+        print("Error in webhdfs_read_file_route:", str(e))
+        return jsonify({'error': 'Failed to read file from HDFS', 'details': str(e)}), 500
+
 
 
 import account.FE_flask as FERS
