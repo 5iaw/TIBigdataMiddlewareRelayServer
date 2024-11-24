@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contents of {{ folder_path }}</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+        .upload-form {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Contents of {{ folder_path }}</h1>
+
+    {% if parent_path %}
+        <p><a href="{{ url_for('template.view_user_folder_page', owner=owner, folder_path=parent_path) }}">Go to Parent Directory</a></p>
+    {% endif %}
+
+    <!-- Upload Form -->
+    <div class="upload-form">
+        <form action="{{ url_for('general_file.upload_file') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="path" value="{{ folder_path }}">
+            <input type="hidden" name="owner" value="{{ owner }}">
+            <label for="file">Upload a file:</label>
+            <input type="file" name="file" id="file" required>
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Path</th>
+                <th>Type</th>
+                <th>Size (bytes)</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in contents %}
+                <tr>
+                    <td>
+                        {% if item.type == 'folder' %}
+                            <a href="{{ url_for('template.view_user_folder_page', owner=owner, folder_path=item.path) }}">
+                                &#128193; {{ item.name }}
+                            </a>
+                        {% else %}
+                            &#128196; {{ item.name }}
+                        {% endif %}
+                    </td>
+                    <td>{{ item.path }}</td>
+                    <td>{{ item.type }}</td>
+                    <td>{{ item.size }}</td>
+                    <td>{{ item.created_at }}</td>
+                    <td>{{ item.updated_at }}</td>
+                    <td>
+                        {% if item.type == 'file' %}
+                            <a href="{{ url_for('general_file.download_file', path=item.path) }}" download>
+                                Download
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

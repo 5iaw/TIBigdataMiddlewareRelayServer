@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Delete File</h2>
+    <p>Are you sure you want to delete the file: <strong>{{ file.name }}</strong>?</p>
+    <form action="/file/delete" method="POST">
+        <input type="hidden" name="path" value="{{ file.path }}">
+        <button type="submit" class="button button-danger">Delete</button>
+        <a href="/" class="button button-secondary">Cancel</a>
+    </form>
+{% endblock %}

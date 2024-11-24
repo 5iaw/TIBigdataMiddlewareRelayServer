@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>{{ username }}'s Files</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in files %}
+            <tr>
+                <td>{{ file.name }}</td>
+                <td>{{ file.type }}</td>
+                <td>
+                    <a href="/file/download?path={{ file.path }}" class="button">Download</a>
+                    <a href="/file/share?path={{ file.path }}" class="button">Share</a>
+                    <a href="/file/delete?path={{ file.path }}" class="button button-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+<form action="/list_files" method="post">
+    <button type="submit" class="button">List All Files</button>
+</form>
+{% endblock %}

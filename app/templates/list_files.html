@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>All Files</h2>
+    <table class="table table-striped table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Owner</th>
+                <th scope="col">Type</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in files %}
+            <tr>
+                <td>{{ file.name }}</td>
+                <td>{{ file.owner }}</td>
+                <td>{{ file.type }}</td>
+                <td>
+                    <a href="/file/download?path={{ file.path }}" class="btn btn-primary btn-sm">Download</a>
+                    <a href="/file/share?path={{ file.path }}" class="btn btn-secondary btn-sm">Analyze</a>
+                    <a href="/file/delete?path={{ file.path }}" class="btn btn-danger btn-sm">Delete</a>
+                    <!--<a class="btn btn-danger btn-sm">Analyze</a>-->
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

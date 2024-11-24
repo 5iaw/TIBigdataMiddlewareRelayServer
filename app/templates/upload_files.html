@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload to HDFS</title>
+</head>
+<body>
+    <h1>Upload Files to HDFS</h1>
+
+    <!-- Single File Upload Form -->
+    <h2>Single File Upload</h2>
+    <form action="/hdfs/upload_single_file" method="POST" enctype="multipart/form-data">
+        <label for="single_file">Select File:</label>
+        <input type="file" name="file" id="single_file" required><br><br>
+
+        <label for="hdfs_dest">HDFS Destination Path (e.g., /user/hdfs/file.txt):</label>
+        <input type="text" name="hdfs_dest" id="hdfs_dest" placeholder="/example_dir/single_file_upload.txt" required><br><br>
+
+        <input type="submit" value="Upload Single File">
+    </form>
+
+    <hr>
+
+    <!-- Multiple File Upload Form -->
+    <h2>Multiple Files Upload</h2>
+    <form action="/hdfs/upload_multiple" method="POST" enctype="multipart/form-data">
+        <label for="multiple_files">Select Multiple Files:</label>
+        <input type="file" name="files" id="multiple_files" multiple required><br><br>
+
+        <label for="hdfs_dest_path">HDFS Destination Directory (e.g., /user/hdfs/uploads):</label>
+        <input type="text" name="hdfs_dest_path" id="hdfs_dest_path" placeholder="/example_dir/multiple_files/" required><br><br>
+
+        <input type="submit" value="Upload Multiple Files">
+    </form>
+
+        <h1>Mongo File Upload</h1>
+    <form action="/mongo/upload_file" method="POST" enctype="multipart/form-data">
+        <!-- User ID input -->
+        <label for="user_id">User ID:</label>
+        <input type="text" id="user_id" name="user_id" required><br><br>
+
+        <!-- File input -->
+        <label for="file">Choose file to upload:</label>
+        <input type="file" id="file" name="file" required><br><br>
+
+        <!-- Submit button -->
+        <button type="submit">Upload File</button>
+    </form>
+</body>
+</html>
+

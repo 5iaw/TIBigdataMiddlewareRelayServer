@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis</title>
+    <script src="{{ url_for('static', filename='ldavis.v3.0.0.js') }}"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        figure {
+    width: 50%; /* Set width to 50% of the page */
+    margin: 0 auto; /* Center the figure horizontally */
+    display: inline-block; /* Allow figures to sit next to each other if space allows */
+}
+        /* Add some styles for your visualization */
+        .chart {
+            font: 10px sans-serif;
+            shape-rendering: crispEdges;
+        }
+
+        #bar {
+            position: relative;
+            /* Positioning for the tooltip */
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Analysis Results</h1>
+
+    <figure id="table1"></figure> <!-- For the wordcount table -->
+    <figure id="bar1"></figure> <!-- For the bar chart -->
+    <figure id="scatter"></figure> <!-- For the table -->
+    <figure id="scatterword"></figure> <!-- For the cluster -->
+    <figure id="network"></figure> <!-- For the network -->
+    <figure id="tree"></figure> <!-- For the hcluster -->
+    <figure id="ldavis"></figure> <!-- For the topic LDA -->
+    <figure id="pie"></figure> <!-- For the pie chart -->
+
+    <figure id="table2"></figure> <!-- For the ner table -->
+
+    <script type="module">
+        import * as lda from "{{ url_for('static', filename='ldavis.v3.0.0.js') }}";
+
+        // Sample data for table and bar chart
+        const sampleWCData = [{ "word": "sit", "value": 8 }, { "word": "at", "value": 7 }, { "word": "nisi", "value": 6 }, { "word": "amet", "value": 6 }, { "word": "non", "value": 5 }, { "word": "venenatis", "value": 5 }, { "word": "condimentum", "value": 5 }, { "word": "porttitor", "value": 4 }, { "word": "sagittis", "value": 4 }, { "word": "velit", "value": 4 }, { "word": "luctus", "value": 4 }, { "word": "orci", "value": 4 }, { "word": "et", "value": 4 }, { "word": "lorem", "value": 3 }, { "word": "vitae", "value": 3 }, { "word": "Nunc", "value": 3 }, { "word": "ornare", "value": 3 }, { "word": "laoreet", "value": 3 }, { "word": "in", "value": 3 }, { "word": "ligula", "value": 3 }, { "word": "dolor", "value": 3 }, { "word": "tincidunt", "value": 3 }, { "word": "vulputate", "value": 3 }, { "word": "Vestibulum", "value": 3 }, { "word": "ipsum", "value": 3 }, { "word": "sed", "value": 3 }, { "word": "Praesent", "value": 3 }, { "word": "a", "value": 3 }, { "word": "ut", "value": 3 }, { "word": "id", "value": 3 }, { "word": "elit", "value": 3 }, { "word": "Nullam", "value": 3 }, { "word": "eu", "value": 2 }, { "word": "eget", "value": 2 }, { "word": "commodo", "value": 2 }, { "word": "purus.", "value": 2 }, { "word": "Sed", "value": 2 }, { "word": "euismod", "value": 2 }, { "word": "non.", "value": 2 }, { "word": "sem", "value": 2 }, { "word": "bibendum", "value": 2 }, { "word": "Vivamus", "value": 2 }, { "word": "vel.", "value": 2 }, { "word": "feugiat", "value": 2 }, { "word": "Suspendisse", "value": 2 }, { "word": "consequat,", "value": 2 }, { "word": "vel", "value": 2 }, { "word": "Lorem", "value": 2 }, { "word": "est,", "value": 2 }, { "word": "ullamcorper", "value": 2 }];
+        const sampleTFIDFData = [{ 'word': 'proin', 'value': 2.1972245773362196 }, { 'word': 'at', 'value': 1.6218604324326575 }, { 'word': 'laoreet', 'value': 1.3862943611198906 }, { 'word': 'mi.', 'value': 1.0986122886681098 }, { 'word': 'accumsan', 'value': 1.0986122886681098 }];
+        const sampleKData = [{ 'category': 0, 'x': -1.9039755883818543, 'y': 1.1469652468413623, 'text': ['Lorem', 'ipsum', 'dolor', 'sit', 'amet,', 'consectetur', 'adipiscing', 'elit.', 'Vivamus', 'condimentum', 'sagittis', 'lacus,', 'laoreet', 'luctus', 'ligula', 'laoreet', 'ut.', 'Vestibulum', 'ullamcorper', 'accumsan', 'velit', 'vel', 'vehicula.', 'Proin', 'tempor', 'lacus', 'arcu.', 'Nunc', 'at', 'elit', 'condimentum,', 'semper', 'nisi', 'et,', 'condimentum', 'mi.', 'In', 'venenatis', 'blandit', 'nibh', 'at', 'sollicitudin.', 'Vestibulum', 'dapibus', 'mauris', 'at', 'orci', 'maximus', 'pellentesque.', 'Nullam', 'id', 'elementum', 'ipsum.', 'Suspendisse', 'cursus', 'lobortis', 'viverra.', 'Proin', 'et', 'erat', 'at', 'mauris', 'tincidunt', 'porttitor', 'vitae', 'ac', 'dui.'] }, { 'category': 0, 'x': 0.06355731400704302, 'y': -0.027605462988562555, 'text': [''] }, { 'category': 1, 'x': -14.078346359408503, 'y': -3.770976205416059, 'text': ['Donec', 'vulputate', 'lorem', 'tortor,', 'nec', 'fermentum', 'nibh', 'bibendum', 'vel.', 'Lorem', 'ipsum', 'dolor', 'sit', 'amet,', 'consectetur', 'adipiscing', 'elit.', 'Praesent', 'dictum', 'luctus', 'massa,', 'non', 'euismod', 'lacus.', 'Pellentesque', 'condimentum', 'dolor', 'est,', 'ut', 'dapibus', 'lectus', 'luctus', 'ac.', 'Ut', 'sagittis', 'commodo', 'arcu.', 'Integer', 'nisi', 'nulla,', 'facilisis', 'sit', 'amet', 'nulla', 'quis,', 'eleifend', 'suscipit', 'purus.', 'Class', 'aptent', 'taciti', 'sociosqu', 'ad', 'litora', 'torquent', 'per', 'conubia', 'nostra,', 'per', 'inceptos', 'himenaeos.', 'Aliquam', 'euismod', 'ultrices', 'lorem,', 'sit', 'amet', 'imperdiet', 'est', 'tincidunt', 'vel.', 'Phasellus', 'dictum', 'justo', 'sit', 'amet', 'ligula', 'varius', 'aliquet', 'auctor', 'et', 'metus.', 'Fusce', 'vitae', 'tortor', 'et', 'nisi', 'pulvinar', 'vestibulum', 'eget', 'in', 'risus.', 'Donec', 'ante', 'ex,', 'placerat', 'a', 'lorem', 'eget,', 'ultricies', 'bibendum', 'purus.', 'Nam', 'sit', 'amet', 'neque', 'non', 'ante', 'laoreet', 'rutrum.', 'Nullam', 'aliquet', 'commodo', 'urna,', 'sed', 'ullamcorper', 'odio', 'feugiat', 'id.', 'Mauris', 'nisi', 'sapien,', 'porttitor', 'in', 'condimentum', 'nec,', 'venenatis', 'eu', 'urna.', 'Pellentesque', 'feugiat', 'diam', 'est,', 'at', 'rhoncus', 'orci', 'porttitor', 'non.'] }, { 'category': 0, 'x': 0.06355731400704302, 'y': -0.027605462988562555, 'text': [''] }, { 'category': 2, 'x': -8.289534834949427, 'y': 10.970389840455562, 'text': ['Nulla', 'luctus', 'sem', 'sit', 'amet', 'nisi', 'consequat,', 'id', 'ornare', 'ipsum', 'dignissim.', 'Sed', 'elementum', 'elit', 'nibh,', 'eu', 'condimentum', 'orci', 'viverra', 'quis.', 'Aenean', 'suscipit', 'vitae', 'felis', 'non', 'suscipit.', 'Suspendisse', 'pharetra', 'turpis', 'non', 'eros', 'semper', 'dictum.', 'Etiam', 'tincidunt', 'venenatis', 'venenatis.', 'Praesent', 'eget', 'gravida', 'lorem,', 'ut', 'congue', 'diam.', 'Etiam', 'facilisis', 'elit', 'at', 'porttitor', 'egestas.', 'Praesent', 'consequat,', 'velit', 'non', 'vulputate', 'convallis,', 'ligula', 'diam', 'sagittis', 'urna,', 'in', 'venenatis', 'nisi', 'justo', 'ut', 'mauris.', 'Vestibulum', 'posuere', 'sollicitudin', 'mi,', 'et', 'vulputate', 'nisl', 'fringilla', 'non.', 'Nulla', 'ornare', 'pretium', 'velit', 'a', 'euismod.', 'Nunc', 'sagittis', 'venenatis', 'vestibulum.', 'Nunc', 'sodales', 'libero', 'a', 'est', 'ornare', 'ultricies.', 'Sed', 'sed', 'leo', 'sed', 'orci', 'pellentesque', 'ultrices.', 'Mauris', 'sollicitudin,', 'sem', 'quis', 'placerat', 'ornare,', 'velit', 'arcu', 'convallis', 'ligula,', 'pretium', 'finibus', 'nisl', 'sapien', 'vel', 'sem.', 'Vivamus', 'sit', 'amet', 'tortor', 'id', 'lorem', 'consequat', 'hendrerit.', 'Nullam', 'at', 'dui', 'risus.'] }];
+        const sampleW2VData = [{ 'word': 'sit', 'x': -5.0302367, 'y': -5.1579566, 'wcount': 8 }, { 'word': 'amet', 'x': -5.7510276, 'y': 1.0804137, 'wcount': 6 }, { 'word': 'condimentum', 'x': -4.3785806, 'y': -2.8134737, 'wcount': 5 }, { 'word': 'at', 'x': -2.2292848, 'y': 4.053815, 'wcount': 7 }, { 'word': 'nisi', 'x': 1.600372, 'y': 3.6958683, 'wcount': 6 }];
+        const sampleNetworkData = { "nodes": [{ "id": 0, "name": "sit", "count": 8 }, { "id": 1, "name": "amet", "count": 0 }, { "id": 2, "name": "Lorem", "count": 2 }, { "id": 3, "name": "ipsum", "count": 2 }, { "id": 4, "name": "dolor", "count": 2 }, { "id": 5, "name": "amet,", "count": 0 }], "links": [{ "source": 0, "target": 1, "weight": 6 }, { "source": 0, "target": 5, "weight": 2 }, { "source": 0, "target": 4, "weight": 0 }, { "source": 2, "target": 3, "weight": 2 }, { "source": 3, "target": 4, "weight": 2 }] };
+        const sampleTreeData = { "name": 18, "children": [{ "name": 13, "parent": 18, "children": [{ "name": 9, "parent": 13, "children": [], "title": "통일 이후 북한지역의 도시개발 방향에 관한 연구" }, { "name": 12, "parent": 13, "children": [{ "name": 7, "parent": 12, "children": [], "title": "새 통일 한국의 영.유아 교육 연구" }, { "name": 11, "parent": 12, "children": [{ "name": 8, "parent": 11, "children": [], "title": "민간 통일 운동의 주요 논의 동향과 통일 정책 수용여부에 관한 연구" }, { "name": 10, "parent": 11, "children": [{ "name": 5, "parent": 10, "children": [], "title": "알기쉬운 통일교육 12주제:프리젠테이션-제1부-통일비전" }, { "name": 6, "parent": 10, "children": [], "title": "통일 후 남북한경제 한시분리운영방안: 노동 및 사회복지 분야" }] }] }] }] }, { "name": 17, "parent": 18, "children": [{ "name": 1, "parent": 17, "children": [], "title": "통일 비용·편익의 분석모형 구축" }, { "name": 16, "parent": 17, "children": [{ "name": 2, "parent": 16, "children": [], "title": "통일대비를 위한 국내과제" }, { "name": 15, "parent": 16, "children": [{ "name": 0, "parent": 15, "children": [], "title": "한반도 통일에 대한 국제사회의 기대와 역할: 주변 4국과 G20" }, { "name": 14, "parent": 15, "children": [{ "name": 3, "parent": 14, "children": [], "title": "통일대계 탐색연구" }, { "name": 4, "parent": 14, "children": [], "title": "한반도 통일의 미래와 주변 4국의 기대" }] }] }] }] }] };
+        const sampleLDAData = [{
+            "mdsDat": { "x": [-0.05538303566292039, 0.06322886975300657, -0.007845834090086141], "y": [0.0, 0.0, 0.0], "topics": [1, 2, 3], "cluster": [1, 1, 1], "Freq": [79.50783275359123, 20.18821364493514, 0.3039536014736205] }, "tinfo": {
+                "Term": ["at", "amet", "non", "condimentum", "lorem", "sed", "ut", "in", "ornare", "a", "vulputate", "Praesent", "laoreet", "Vestibulum", "venenatis", "nisi", "porttitor", "luctus", "sagittis", "velit", "et", "orci", "tortor", "Pellentesque", "ante", "Donec", "purus.", "non.", "dictum", "Mauris", "amet", "non", "lorem", "in", "a", "vulputate", "ut", "Praesent", "sed", "ornare", "aliquet", "commodo", "purus.", "per", "bibendum", "ante", "est,", "Pellentesque", "euismod", "vel.", "feugiat", "Donec", "justo", "facilisis", "dictum", "eu", "suscipit", "eget", "urna,", "tortor", "sit", "nisi", "venenatis", "et", "sagittis", "luctus", "porttitor", "orci", "velit", "condimentum", "at", "mauris", "Proin", "mi.", "ut.", "condimentum,", "In", "lacus", "cursus", "ipsum.", "ac", "erat", "lobortis", "tempor", "lacus,", "sollicitudin.", "dui.", "blandit", "vehicula.", "accumsan", "maximus", "pellentesque.", "viverra.", "et,", "Vestibulum", "laoreet", "at", "elementum", "Vivamus", "Suspendisse", "vel", "condimentum", "semper", "consectetur", "amet,", "dapibus", "adipiscing", "nibh", "elit.", "ullamcorper", "elit", "Lorem", "velit", "id", "Nullam", "arcu.", "ligula", "Nunc", "vitae", "tincidunt", "ipsum", "orci", "blandit", "maximus", "lobortis", "In", "dui.", "pellentesque.", "et,", "accumsan", "tempor", "lacus,", "erat", "condimentum,", "viverra.", "mi.", "cursus", "vehicula.", "sollicitudin.", "ut.", "lacus", "ac", "ipsum.", "torquent", "Class", "nec,", "varius", "eleifend", "Ut", "litora", "sociosqu", "lacus.", "at", "sit", "venenatis", "condimentum", "nisi", "amet", "porttitor", "luctus", "dolor", "sagittis", "et", "velit", "laoreet", "ipsum", "orci", "tincidunt", "non", "arcu.", "elit", "id", "Nunc", "lorem", "Nullam", "Suspendisse", "adipiscing", "Vestibulum", "dapibus", "sed", "vitae", "ligula"], "Freq": [4.0, 5.0, 4.0, 3.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 4.0, 4.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 5.087002368643192, 4.283614258307743, 2.6773166832555937, 2.677301441330395, 2.677312012343033, 2.6773149623930714, 2.6772421944921216, 2.6772436695171407, 2.6771667223786366, 2.6770275783518205, 1.87420169838621, 1.8741921107235848, 1.8741497037542814, 1.874163224816958, 1.8741804334421825, 1.8741277012977442, 1.8741680186482705, 1.8741155323413354, 1.8741402390104078, 1.8741385181478853, 1.874141468197924, 1.8741080342974876, 1.87410668219122, 1.8741183594726223, 1.8740779192033445, 1.8741022571161623, 1.8741095093225069, 1.8741214324414124, 1.8740836963846699, 1.8740185494463197, 5.891800111222039, 4.284765761172773, 3.4809548103318053, 2.6776419262723388, 2.677552687258674, 2.6775435912710552, 2.677450173019836, 2.6773594589811522, 2.6771168173654853, 2.6767738740485094, 2.6749207509493234, 1.1963050757491576, 1.1962772356375646, 0.6835985844082274, 0.6835977105033793, 0.6835898453597453, 0.6835806693588392, 0.6835922173871906, 0.6835900950468449, 0.68359490152351, 0.6835929040267141, 0.6835850388830802, 0.6835752386644253, 0.6835809814677135, 0.6835806693588392, 0.6835849764613053, 0.6835750513991007, 0.6835698703917863, 0.6835827916991848, 0.6835741774942524, 0.6835683098474145, 0.6835684346909643, 0.6835742399160274, 0.6835571987714872, 1.1973860960463922, 1.1972381564399455, 2.2235627467220374, 0.6841089448395816, 0.6840932145523139, 0.6840850997215805, 0.6840839761296328, 1.1969452734722457, 0.6840657489713701, 0.6839900313584503, 0.6839893447189267, 0.683986723004382, 0.683983352228539, 0.6839829776978897, 0.6839739889623081, 0.6839729277921354, 0.6839661862404491, 0.6839620664033076, 0.6839612549202343, 0.6839558242258204, 0.6839272974747038, 0.6839264235698557, 0.6839131277318079, 0.6839017045470063, 0.683865250230481, 0.6838472727593178, 0.6838430280786265, 0.6838224913146936, 0.005282687116447527, 0.005282669729744231, 0.005282619919188841, 0.005282590314802147, 0.0052825245272761605, 0.005282522177721661, 0.005282540974157657, 0.005282445112334076, 0.005282380264629889, 0.005282359118639394, 0.005282281113430009, 0.005282233182518219, 0.005282256678063214, 0.0052821678649031326, 0.005282165045437733, 0.005282163165794133, 0.005282144839269037, 0.005282074352634051, 0.005282086570317449, 0.005282003396088165, 0.005281937138651278, 0.005283148568951235, 0.005282904215283284, 0.005282879779916489, 0.005282882599381888, 0.005282865682589491, 0.005282829499450199, 0.005282825740163, 0.005282738336735617, 0.005282744915488215, 0.005293135115396023, 0.005290900689066973, 0.005288588257528539, 0.005287807735523796, 0.005287766383364604, 0.005287521559785753, 0.005287515450944054, 0.005287509812013256, 0.005287428987338472, 0.005287239143334911, 0.005286855696040588, 0.005286628259165033, 0.005286541325648551, 0.005286214737573116, 0.005286132973076533, 0.005286063426263347, 0.0052859764927468645, 0.005285858075200088, 0.005285543234897152, 0.005285523968550256, 0.005285512690688658, 0.0052854891951436625, 0.005285329895348595, 0.005285276795416906, 0.0052852110078909185, 0.005285133472592435, 0.005285066275333749, 0.0052850023674513615, 0.005284962425024869, 0.0052848750215974865], "Total": [4.0, 5.0, 4.0, 3.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 4.0, 4.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 5.263552940272897, 4.460231230972357, 2.853678784284557, 2.8537188265590157, 2.8537307469512725, 2.853741972302101, 2.8536788927020074, 2.85371751682694, 2.853639681420835, 2.8535971319656688, 2.0504844496291534, 2.0504741900249828, 2.050442330400309, 2.0504606502579796, 2.0504798169191463, 2.050426296577435, 2.0504708864227474, 2.050416470174825, 2.050448659393337, 2.0504472329578336, 2.0504545046452196, 2.050420449148417, 2.0504331238234004, 2.0504539624957676, 2.0504128042323617, 2.050441369046946, 2.0504501409594327, 2.0504666110114367, 2.050435271994348, 2.0503687506377317, 6.580121308480898, 4.973385633407436, 4.169836302616048, 3.3665474037663405, 3.3665028676601296, 3.3664912957830944, 3.3664573087004848, 3.366468083268922, 3.3663647005448847, 3.879006955256279, 4.903776632786757, 1.4695294002734298, 1.4695187750321295, 0.9567451113910467, 0.9567502284521339, 0.9567467321056266, 0.9567342256744563, 0.9567526450834193, 0.9567500480838116, 0.9567587137021811, 0.9567564751659431, 0.9567470746880647, 0.9567358309532705, 0.9567445299895415, 0.9567457024893838, 0.9567539745500342, 0.9567405572351612, 0.956735538817018, 0.9567542972191586, 0.9567451659888808, 0.9567372182328605, 0.956744539919796, 0.9567544432608828, 0.9567499475579095, 2.2721679889838096, 2.272181866201263, 4.903776632786757, 1.7596689183960708, 1.7596546376104285, 1.7596389428231456, 1.7596703888913867, 3.879006955256279, 1.759689232247827, 1.7597274313810731, 1.7597191756670532, 1.7597050667130134, 1.7596997510509507, 1.7597186647723726, 1.7597382734181255, 1.7597531518173375, 2.563054802350104, 1.7597353941426201, 3.3663647005448847, 2.5630616296943525, 2.56308773063325, 1.7596998891665627, 2.5631183401171933, 2.563093173107545, 2.563140982463963, 2.563096572193679, 2.563091249636781, 3.366468083268922, 0.956735538817018, 0.9567372182328605, 0.9567358309532705, 0.9567342256744563, 0.9567405572351612, 0.956744539919796, 0.9567499475579095, 0.9567451659888808, 0.9567445299895415, 0.9567457024893838, 0.9567470746880647, 0.9567467321056266, 0.9567544432608828, 0.9567451113910467, 0.9567500480838116, 0.9567542972191586, 0.9567539745500342, 0.9567502284521339, 0.9567526450834193, 0.9567564751659431, 0.9567587137021811, 1.2471158035678682, 1.2471326993749263, 1.247131064204648, 1.2471340377715436, 1.2471376664858576, 1.2471331892693702, 1.247133759268963, 1.2471333852544249, 1.247138111425597, 4.903776632786757, 6.580121308480898, 4.169836302616048, 3.879006955256279, 4.973385633407436, 5.263552940272897, 3.3664573087004848, 3.3664912957830944, 2.5630654658097143, 3.3665028676601296, 3.3665474037663405, 3.3663647005448847, 2.272181866201263, 2.563091249636781, 3.366468083268922, 2.563096572193679, 4.460231230972357, 1.7596998891665627, 2.563054802350104, 2.5630616296943525, 2.563093173107545, 2.853678784284557, 2.56308773063325, 1.7596389428231456, 1.7596997510509507, 2.2721679889838096, 1.7597050667130134, 2.853639681420835, 2.563140982463963, 2.5631183401171933], "Category": ["Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Default", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic1", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic2", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3", "Topic3"], "logprob": [30.0, 29.0, 28.0, 27.0, 26.0, 25.0, 24.0, 23.0, 22.0, 21.0, 20.0, 19.0, 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, 12.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, -3.9491, -4.121, -4.591, -4.591, -4.591, -4.591, -4.591, -4.591, -4.5911, -4.5911, -4.9476, -4.9476, -4.9477, -4.9477, -4.9476, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -4.9477, -3.8023, -4.1208, -4.3285, -4.5909, -4.5909, -4.5909, -4.591, -4.591, -4.5911, -4.5912, -4.5919, -4.0258, -4.0258, -4.5854, -4.5854, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.5855, -4.0249, -4.025, -3.406, -4.5847, -4.5847, -4.5847, -4.5847, -4.0253, -4.5848, -4.5849, -4.5849, -4.5849, -4.5849, -4.5849, -4.5849, -4.5849, -4.5849, -4.5849, -4.5849, -4.5849, -4.585, -4.585, -4.585, -4.585, -4.5851, -4.5851, -4.5851, -4.5851, -5.2524, -5.2524, -5.2524, -5.2524, -5.2524, -5.2524, -5.2524, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2525, -5.2523, -5.2524, -5.2524, -5.2524, -5.2524, -5.2524, -5.2524, -5.2524, -5.2524, -5.2504, -5.2509, -5.2513, -5.2514, -5.2514, -5.2515, -5.2515, -5.2515, -5.2515, -5.2515, -5.2516, -5.2517, -5.2517, -5.2517, -5.2518, -5.2518, -5.2518, -5.2518, -5.2519, -5.2519, -5.2519, -5.2519, -5.2519, -5.2519, -5.2519, -5.2519, -5.252, -5.252, -5.252, -5.252], "loglift": [30.0, 29.0, 28.0, 27.0, 26.0, 25.0, 24.0, 23.0, 22.0, 21.0, 20.0, 19.0, 18.0, 17.0, 16.0, 15.0, 14.0, 13.0,
+                    12.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.1952, 0.1889, 0.1655, 0.1655, 0.1655, 0.1655, 0.1655, 0.1655, 0.1655, 0.1654, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1394, 0.1188, 0.0803, 0.0487, 0.0004, 0.0003, 0.0003, 0.0003, 0.0003, 0.0002, -0.1417, -0.3768, 1.3944, 1.3944, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2639, 1.2638, 0.9595, 0.9593, 0.8092, 0.6553, 0.6553, 0.6553, 0.6553, 0.4243, 0.6552, 0.6551, 0.6551, 0.6551, 0.6551, 0.6551, 0.6551, 0.6551, 0.279, 0.6551, 0.0064, 0.279, 0.279, 0.655, 0.2789, 0.2789, 0.2788, 0.2788, 0.2788, 0.0062, 0.597, 0.597, 0.5969, 0.5969, 0.5969, 0.5969, 0.5969, 0.5969, 0.5969, 0.5969, 0.5969, 0.5969, 0.5969, 0.5969, 0.5968, 0.5968, 0.5968, 0.5968, 0.5968, 0.5968, 0.5968, 0.332, 0.3319, 0.3319, 0.3319, 0.3319, 0.3319, 0.3319, 0.3319, 0.3319, -1.0353, -1.3298, -0.874, -0.8019, -1.0504, -1.1072, -0.6602, -0.6602, -0.3876, -0.6603, -0.6604, -0.6604, -0.2673, -0.3878, -0.6605, -0.3878, -0.9418, -0.0118, -0.3879, -0.3879, -0.388, -0.4953, -0.388, -0.0119, -0.0119, -0.2675, -0.012, -0.4954, -0.3881, -0.3881]
+            }, "token.table": { "Topic": [1, 1, 2, 1, 2, 1, 1, 2, 1, 2, 1, 1, 2, 1, 2, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 2, 2, 1, 1, 1, 2, 1, 2, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 2, 2, 2, 1, 1, 2, 1, 2, 1, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 1, 2, 1, 2, 2, 1], "Freq": [0.8018392914412465, 0.975409702351848, 1.0452223545102541, 0.5682672538886, 0.5682672538886, 0.9754309768429523, 0.7803088345734734, 0.3901544172867367, 0.7803071776650087, 0.39015358883250434, 0.9754115952011806, 1.0512603235290479, 0.6804948783169756, 0.5682984023958977, 0.5682984023958977, 0.801838976465575, 0.44010830398470396, 0.44010830398470396, 0.5682933336043586, 0.5682933336043586, 1.05125544980198, 1.045198047733679, 1.045210402465333, 0.5682787642623505, 0.5682787642623505, 0.9753792575026433, 0.9499286996324516, 0.5682724913314262, 0.5682724913314262, 0.9754069206673722, 0.5682787196591941, 0.5682787196591941, 0.6117733788977938, 0.40784891926519584, 0.975381461205996, 1.0452209199174074, 0.9753841378396634, 0.7733938182128873, 0.25779793940429574, 1.045208691540739, 0.5682698252962834, 0.5682698252962834, 1.045205068975758, 0.568277047623622, 0.568277047623622, 0.9754133391440484, 0.7803156129561315, 0.39015780647806575, 1.0452154373907303, 0.9753877430920258, 0.8018360978686229, 0.5682887215576297, 0.5682887215576297, 0.7803188594196931, 0.3901594297098466, 0.5682663240923859, 0.5682663240923859, 1.0452083172828486, 0.9753857093231891, 0.8911206765256702, 0.29704022550855674, 1.0452051787956567, 0.9753997506056994, 0.9753962825832161, 0.9753937599094611, 0.9753935020109361, 0.7803167808487312, 0.3901583904243656, 1.0512598410465577, 0.7803077632462061, 0.39015388162310305, 1.0451956022752034, 0.9754036728935793, 1.0452022318817942, 1.0452098163577548, 0.8018358117986669, 0.44010561604905574, 0.44010561604905574, 0.7802995159047375, 0.3901497579523687, 0.80183860998693, 1.0452206007625136, 1.0512745921234183, 0.8911355284826771, 0.2970451761608923, 0.6804899580872175, 1.0452190851810363, 1.0452104621115477, 0.8018403427692223, 0.568272656316545, 0.568272656316545, 0.8042810863350373, 0.2010702715837593, 0.8968144907428882, 0.975427066772258, 0.8911416730518732, 0.29704722435062436, 1.0513046731069158, 1.045211086424209, 0.9753905785748042, 0.8911445252095165, 0.2970481750698388, 0.9753992932878726, 0.8911324653304498, 0.2970441551101499, 1.0512889975325448, 0.5682821612328672, 0.5682821612328672, 0.911837292766442, 0.15197288212774035, 0.801838850457838, 1.0452007795110594, 0.9753955778042833, 1.0452110972726767, 0.7803061428498025, 0.39015307142490124, 0.8018501546841956, 0.9754342965761328, 0.5682615195019125, 0.5682615195019125, 0.9754026509964918, 1.0512745521832165, 1.0452048719317655, 0.8018384309250848, 1.0452004270130133, 0.5682882466585187, 0.5682882466585187, 0.9753969611375651, 0.8911690404531677, 0.2970563468177226, 0.7194527032435007, 0.23981756774783358, 0.7802926228729674, 0.3901463114364837, 1.0452002674706422, 1.0512513146309137], "Term": ["Class", "Donec", "In", "Lorem", "Lorem", "Mauris", "Nullam", "Nullam", "Nunc", "Nunc", "Pellentesque", "Praesent", "Proin", "Suspendisse", "Suspendisse", "Ut", "Vestibulum", "Vestibulum", "Vivamus", "Vivamus", "a", "ac", "accumsan", "adipiscing", "adipiscing", "aliquet", "amet", "amet,", "amet,", "ante", "arcu.", "arcu.", "at", "at", "bibendum", "blandit", "commodo", "condimentum", "condimentum", "condimentum,", "consectetur", "consectetur", "cursus", "dapibus", "dapibus", "dictum", "dolor", "dolor", "dui.", "eget", "eleifend", "elementum", "elementum", "elit", "elit", "elit.", "elit.", "erat", "est,", "et", "et", "et,", "eu", "euismod", "facilisis", "feugiat", "id", "id", "in", "ipsum", "ipsum", "ipsum.", "justo", "lacus", "lacus,", "lacus.", "laoreet", "laoreet", "ligula", "ligula", "litora", "lobortis", "lorem", "luctus", "luctus", "mauris", "maximus", "mi.", "nec,", "nibh", "nibh", "nisi", "nisi", "non", "non.", "orci", "orci", "ornare", "pellentesque.", "per", "porttitor", "porttitor", "purus.", "sagittis", "sagittis", "sed", "semper", "semper", "sit", "sit", "sociosqu", "sollicitudin.", "suscipit", "tempor", "tincidunt", "tincidunt", "torquent", "tortor", "ullamcorper", "ullamcorper", "urna,", "ut", "ut.", "varius", "vehicula.", "vel", "vel", "vel.", "velit", "velit", "venenatis", "venenatis", "vitae", "vitae", "viverra.", "vulputate"] }, "R": 30, "lambda.step": 0.01, "plot.opts": { "xlab": "PC1", "ylab": "PC2" }, "topic.order": [2, 1, 3]
+        }];
+        const samplePieData = [
+            { "label": "Positive", "value": 50.0 },
+            { "label": "Negative", "value": 20.0 },
+            { "label": "Neutral", "value": 30.0 }
+        ];
+        const sampleNERData = {"text":"한국은 아시아에 있는 나라입니다. 이재명은 더불어민주당의 대표입니다. 서울특별시는 한국의 수도입니다.","entities":[{"text":"한국","label":"LOC"},{"text":"아시아","label":"LOC"},{"text":"이재명","label":"PER"},{"text":"더불어민주당","label":"ORG"},{"text":"서울특별시","label":"LOC"},{"text":"한국","label":"LOC"}],"tokens":[{"text":"한국","pos":"PROPN","dep":"nsubj"},{"text":"은","pos":"AUX","dep":"case"},{"text":"아시아","pos":"PROPN","dep":"obl"},{"text":"에","pos":"ADP","dep":"case"},{"text":"있는","pos":"VERB","dep":"acl"},{"text":"나라","pos":"NOUN","dep":"root"},{"text":"입니다","pos":"AUX","dep":"aux"},{"text":"이재명","pos":"PROPN","dep":"nsubj"},{"text":"은","pos":"AUX","dep":"case"},{"text":"더불어민주당","pos":"PROPN","dep":"nmod"},{"text":"의","pos":"ADP","dep":"case"},{"text":"대표","pos":"NOUN","dep":"root"},{"text":"입니다","pos":"AUX","dep":"aux"},{"text":"서울특별시","pos":"PROPN","dep":"nsubj"},{"text":"는","pos":"AUX","dep":"case"},{"text":"한국","pos":"PROPN","dep":"nmod"},{"text":"의","pos":"ADP","dep":"case"},{"text":"수도","pos":"NOUN","dep":"root"},{"text":"입니다","pos":"AUX","dep":"aux"}]};
+
+        // Function to draw the table
+        // function drawTable(analType, data_str) {
+        //     let data = JSON.parse(data_str);
+
+        //     const table = d3.select("figure#table")
+        //         .attr('class', 'result-pretable')
+        //         .append("table")
+        //         .attr('width', '100%')
+        //         .attr('height', '300px');
+
+        //     if (analType === 'count' || analType === 'tfidf') {
+        //         const th = table.append("tr")
+        //             .style('padding', '15px 0px')
+        //             .style('font-weight', '500')
+        //             .style('text-align', 'center');
+
+        //         th.append('th').text('No');
+        //         th.append('th').text('단어');
+        //         th.append('th').text('값');
+
+        //         const tbody = table.append("tbody")
+        //             .style('text-align', 'center');
+
+        //         for (let i = 0; i < data.length; i++) {
+        //             const tr = tbody.append("tr");
+        //             tr.append("td").text(i + 1);
+        //             tr.append("td").text(data[i]['word']);
+        //             tr.append("td").text(data[i]['value']);
+        //         }
+        //     }
+        // }
+
+        function drawTable(analType, data_str, tableId) {
+    let data;
+    try {
+        data = JSON.parse(data_str);
+    } catch (e) {
+        console.error("Failed to parse JSON:", e);
+        return; // Exit the function if parsing fails
+    }
+
+    const table = d3.select(`figure#${tableId}`) // Use the provided table ID
+        .attr('class', 'result-pretable')
+        .append("table")
+        .attr('width', '100%')
+        .attr('height', '300px');
+
+    if (analType === 'count' || analType === 'tfidf') {
+        const th = table.append("tr")
+            .style('padding', '15px 0px')
+            .style('font-weight', '500')
+            .style('text-align', 'center');
+
+        th.append('th').text('No');
+        th.append('th').text('단어'); // "Word" in Korean
+        th.append('th').text('값'); // "Value" in Korean
+
+        const tbody = table.append("tbody")
+            .style('text-align', 'center');
+
+        for (let i = 0; i < data.length; i++) {
+            const tr = tbody.append("tr");
+            tr.append("td").text(i + 1);
+            tr.append("td").text(data[i]['word']);
+            tr.append("td").text(data[i]['value']);
+        }
+    } else if (analType === 'ner') {
+        // Check if entities are present in the parsed data
+        if (!data.entities || !Array.isArray(data.entities)) {
+            console.error("Entities data is missing or not an array.", data.entities);
+            return; // Exit if entities are not found
+        }
+
+        const th = table.append("tr")
+            .style('padding', '15px 0px')
+            .style('font-weight', '500')
+            .style('text-align', 'center');
+
+        th.append('th').text('Type');
+        th.append('th').text('Entity');
+
+        const tbody = table.append("tbody")
+            .style('text-align', 'center');
+
+        // Group entities by type
+        const groupedEntities = {};
+        data.entities.forEach(entity => {
+            if (!groupedEntities[entity.label]) {
+                groupedEntities[entity.label] = [];
+            }
+            groupedEntities[entity.label].push(entity.text);
+        });
+
+        // Add rows for each type and its entities
+        for (const [type, entities] of Object.entries(groupedEntities)) {
+            entities.forEach((entity, index) => {
+                const tr = tbody.append("tr");
+                tr.append("td").text(type);
+                tr.append("td").text(entity);
+            });
+        }
+    }
+}
+
+
+        // Function to draw the bar chart
+        function drawBarChart(data_str, figureId) {
+    let data;
+    try {
+        data = JSON.parse(data_str);
+    } catch (e) {
+        console.error("Failed to parse JSON:", e);
+        return; // Exit the function if parsing fails
+    }
+
+    let margin = { top: 20, right: 0, bottom: 30, left: 40 };
+    let width = 1000;
+    let height = 500;
+
+    const x = d3.scaleBand()
+        .domain(data.map(d => d.word))
+        .range([margin.left, width - margin.right])
+        .padding(0.1);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.value)]).nice()
+        .range([height - margin.bottom, margin.top]);
+
+    const svg = d3.select(`figure#${figureId}`) // Use the provided figure ID
+        .append("svg")
+        .attr("id", "svgstart")
+        .attr("viewBox", `0 0 ${width} ${height}`);
+
+    // Draw bars
+    svg.append("g")
+        .attr("class", "bars")
+        .attr("fill", "steelblue")
+        .selectAll("rect")
+        .data(data)
+        .join("rect")
+        .attr("x", d => x(d.word))
+        .attr("y", d => y(d.value))
+        .attr("height", d => y(0) - y(d.value))
+        .attr("width", x.bandwidth())
+        .on("mouseover", function (e, d) {
+            tooltip
+                .html("Word: " + d.word + "<br>" + "Value: " + d.value)
+                .style("opacity", 1);
+            d3.select(this).attr("fill", "red");
+        })
+        .on("mousemove", function (e, d) {
+            tooltip
+                .style("left", (e.pageX + 20) + "px")
+                .style("top", (e.pageY) + "px");
+        })
+        .on("mouseout", function () {
+            d3.select(this).attr("fill", "steelblue");
+            tooltip.style("opacity", 0);
+        });
+
+    // Draw the X-axis on the DOM
+    svg.append("g")
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x).tickSizeOuter(0));
+
+    // Draw the Y-axis on the DOM
+    svg.append("g")
+        .attr("class", "y-axis")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y).ticks(10));
+
+    // Draw a tooltip
+    const tooltip = d3.select(`figure#${figureId}`) // Use the provided figure ID for tooltip
+        .append("div")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("background-color", "white")
+        .style("border", "solid")
+        .style("border-width", "1px")
+        .style("border-radius", "5px")
+        .style("padding", "10px");
+}
+
+
+        function drawScatterChart(data_str) {
+    let data = JSON.parse(data_str);
+
+    const margin = { top: 10, right: 30, bottom: 30, left: 60 };
+    const width = 750 - margin.left - margin.right;
+    const height = 750 - margin.top - margin.bottom;
+
+    function zoom(svg) {
+        const extent = [[margin.left, margin.top], [width - margin.right, height - margin.top]];
+
+        svg.call(d3.zoom()
+            .scaleExtent([1, 8])
+            .translateExtent(extent)
+            .extent(extent)
+            .on("zoom", zoomed));
+
+        function zoomed(event) {
+            x.range([margin.left, width - margin.right].map(d => event.transform.applyX(d)));
+            svg.selectAll(".dots circle").attr("cx", d => x(d.x));
+            svg.selectAll(".x-axis").call(xAxis);
+        }
+    }
+
+    const x = d3.scaleLinear()
+        .domain([d3.min(data, d => d.x), d3.max(data, d => d.x)])
+        .range([0, width]);
+
+    const y = d3.scaleLinear()
+        .domain([d3.min(data, d => d.y), d3.max(data, d => d.y)])
+        .range([height, 0]);
+
+    const svg = d3.select("figure#scatter")
+        .append("svg")
+        .attr("id", "svgstart")
+        .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .call(zoom)
+        .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    const xAxis = g => g
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x).tickSizeOuter(0));
+
+    const yAxis = g => g.call(d3.axisLeft(y));
+
+    svg.append("g").call(xAxis);
+    svg.append("g").call(yAxis);
+
+    const color = d3.scaleSequential()
+        .domain([0, d3.max(data, d => d.category)])
+        .interpolator(d3.interpolateSinebow);
+
+    const tooltip = d3.select("figure#scatter")
+        .append("div")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("background-color", "white")
+        .style("border", "solid")
+        .style("border-width", "1px")
+        .style("border-radius", "5px")
+        .style("padding", "10px");
+
+    const highlight = function (e, d) {
+        let category = d.category;
+        let colorset = color(category);
+
+        d3.selectAll(".dot")
+            .transition()
+            .duration(200)
+            .style("fill", "lightgrey")
+            .attr("r", 3);
+
+        d3.selectAll(".type" + category)
+            .transition()
+            .duration(200)
+            .style("fill", colorset)
+            .attr("r", 7);
+
+        tooltip.html(`Title: ${d.title}<br>Category: ${d.category}`)
+            .style("opacity", 1);
+
+        d3.selectAll(".dottext").style("opacity", 0);
+    };
+
+    const doNotHighlight = function (e, d) {
+        d3.selectAll(".dot")
+            .transition()
+            .duration(200)
+            .style("fill", "lightgrey")
+            .attr("r", 5);
+
+        tooltip.style("opacity", 0)
+            .style("left", "0px")
+            .style("top", "0px");
+
+        d3.selectAll(".dottext").style("opacity", 1);
+    };
+
+    svg.append('g')
+        .selectAll("dot")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("class", d => "dot type" + d.category)
+        .attr("cx", d => x(d.x))
+        .attr("cy", d => y(d.y))
+        .attr("r", 5)
+        .style("fill", d => color(d.category))
+        .on("mouseover", highlight)
+        .on("mouseout", doNotHighlight)
+        .on("mousemove", function (e) {
+            tooltip.style("left", (e.pageX + 20) + "px")
+                .style("top", (e.pageY) + "px");
+        });
+}
+
+function drawScatterWordChart(data_str) {
+    let data = JSON.parse(data_str);
+
+    const normWcount = d3.scaleLinear()
+        .domain(d3.extent(data, d => +d.wcount))
+        .range([1, 2]);
+
+    const margin = { top: 10, right: 30, bottom: 30, left: 60 },
+        width = 750 - margin.left - margin.right,
+        height = 750 - margin.top - margin.bottom;
+
+    function zoom(svg) {
+        const extent = [[margin.left, margin.top], [width - margin.right, height - margin.top]];
+
+        svg.call(d3.zoom()
+            .scaleExtent([1, 8])
+            .translateExtent(extent)
+            .extent(extent)
+            .on("zoom", zoomed));
+
+        function zoomed(event) {
+            x.range([margin.left, width - margin.right].map(d => event.transform.applyX(d)));
+            svg.selectAll(".dots circle").attr("cx", d => x(d.x));
+            svg.selectAll(".x-axis").call(xAxis);
+        }
+    }
+
+    const x = d3.scaleLinear()
+        .domain([d3.min(data, d => d.x), d3.max(data, d => d.x)])
+        .range([0, width]);
+
+    const y = d3.scaleLinear()
+        .domain([d3.min(data, d => d.y), d3.max(data, d => d.y)])
+        .range([height, 0]);
+
+    const svg = d3.select("figure#scatter")
+        .append("svg")
+        .attr("id", "svgstart")
+        .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .call(zoom)
+        .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    const xAxis = g => g
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x).tickSizeOuter(0));
+
+    const yAxis = g => g.call(d3.axisLeft(y));
+
+    svg.append("g").call(xAxis);
+    svg.append("g").call(yAxis);
+
+    const tooltip = d3.select("figure#scatter")
+        .append("div")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("background-color", "white")
+        .style("border", "solid")
+        .style("border-width", "1px")
+        .style("border-radius", "5px")
+        .style("padding", "10px");
+
+    const highlight = function (e, d) {
+        let wcountValue = d.wcount || 0; // Use 0 if wcount is undefined or NaN
+        d3.selectAll(".dot")
+            .transition()
+            .duration(200)
+            .style("fill", "lightgrey")
+            .attr("r", d => 15 * (normWcount(wcountValue)));
+
+        d3.selectAll(".type" + d.word)
+            .transition()
+            .duration(200)
+            .style("fill", "red")
+            .attr("r", d => 35 * (normWcount(wcountValue)));
+
+        tooltip.html(`Word: ${d.word}<br>x: ${d.x}<br>y: ${d.y}`)
+            .style("opacity", 1);
+
+        d3.selectAll(".dottext").style("opacity", 0);
+    };
+
+    const doNotHighlight = function (e, d) {
+        let wcountValue = d.wcount || 0; // Use 0 if wcount is undefined or NaN
+        d3.selectAll(".dot")
+            .transition()
+            .duration(200)
+            .style("fill", "lightgrey")
+            .attr("r", d => 5 * (normWcount(wcountValue)));
+
+        tooltip.style("opacity", 0)
+            .style("left", "0px")
+            .style("top", "0px");
+
+        d3.selectAll(".dottext").style("opacity", 1);
+    };
+
+    svg.append('g')
+        .selectAll("dot")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("class", d => "dot type" + d.word)
+        .attr("cx", d => x(d.x))
+        .attr("cy", d => y(d.y))
+        .attr("r", d => 5 * (normWcount(d.wcount)))
+        .style("fill", "black")
+        .on("mouseover", highlight)
+        .on("mouseout", doNotHighlight)
+        .on("mousemove", function (e) {
+            tooltip.style("left", (e.pageX + 20) + "px")
+                .style("top", (e.pageY) + "px");
+        });
+}
+
+        function drawNetworkChart(data_str) {
+            let data = JSON.parse(data_str);
+
+            // Normalize count
+            const normCount = d3.scaleLinear()
+                .domain(d3.extent(data.nodes, d => +d.count))
+                .range([0, 1]);
+
+            const normWeight = d3.scaleLinear()
+                .domain(d3.extent(data.links, d => +d.weight))
+                .range([0, 1]);
+
+            // Set margins and sizes
+            var margin = {
+                top: 20,
+                bottom: 50,
+                right: 30,
+                left: 50
+            };
+
+            // Extract data from dataset
+            var nodes = data.nodes,
+                links = data.links;
+
+            var width = 1000 - margin.left - margin.right;
+            var height = 1000 - margin.top - margin.bottom;
+
+            // Load Color Scale
+            var color = d3.scaleSequential()
+                .domain([0, nodes.length])
+                .interpolator(d3.interpolateSinebow);
+
+            // Create an SVG element and append it to the DOM
+            var svg = d3.select("figure#network")
+                .append("svg")
+                .attr("id", "svgstart")
+                .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
+                .call(d3.zoom()
+                    .on("zoom", function (e) {
+                        g.attr("transform", e.transform);
+                    }));
+
+            var g = svg.append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            // Create Force Layout
+            var force = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink()
+                    .id(function (d) { return d.id; })
+                    .links(links))
+                .force("charge", d3.forceManyBody().strength(-200))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+
+            // Highlight the species that is hovered
+            const highlight = function (e, d) {
+                d3.selectAll(".dot")
+                    .transition()
+                    .duration(200)
+                    .style("fill", "#FEE2C5")
+                    .attr("r", 3);
+
+                d3.selectAll(".type" + d.id)
+                    .transition()
+                    .duration(200)
+                    .style("fill", "#F66B0E")
+                    .attr("r", 7);
+            };
+
+            // Reset highlight
+            const doNotHighlight = function (e, d) {
+                d3.selectAll(".dot")
+                    .transition()
+                    .duration(200)
+                    .style("fill", "#7FB5FF")
+                    .attr("r", function (d) { return normCount(d.count) * 7 < 1 ? 1 : normCount(d.count) * 7; });
+
+                d3.selectAll(".dottext")
+                    .style("opacity", 1);
+            };
+
+            // Add links to SVG
+            var link = g.selectAll(".link")
+                .data(links)
+                .enter()
+                .append("line")
+                .style("stroke-width", function (d) { return normWeight(d.weight) * 5 < 1 ? 1 : normWeight(d.weight) * 5; })
+                .attr("class", "link")
+                .style("stroke", "#C4DDFF");
+
+            // Add nodes to SVG
+            var node = g.selectAll(".node")
+                .data(nodes)
+                .enter()
+                .append("g")
+                .attr("class", "node");
+
+            // Add labels to each node
+            var label = node.append("text")
+                .attr("dx", 12)
+                .attr("dy", "0.35em")
+                .attr("font-size", function (d) { return normCount(d.count) * 12 < 1 ? 9 : normCount(d.count) * 12; })
+                .text(function (d) { return d.name; });
+
+            // Add circles to each node
+            var circle = node.append("circle")
+                .attr("r", function (d) { return normCount(d.count) * 7 < 1 ? 1 : normCount(d.count) * 7; })
+                .attr("fill", "#7FB5FF")
+                .attr("class", function (d) { return "dot type" + d.id; })
+                .on("mouseover", highlight)
+                .on("mouseout", doNotHighlight);
+
+            // This function will be executed for every tick of force layout 
+            force.on("tick", function () {
+                // Set X and Y of nodes
+                node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+                // Set X, Y of links
+                link
+                    .attr("x1", function (d) { return d.source.x; })
+                    .attr("y1", function (d) { return d.source.y; })
+                    .attr("x2", function (d) { return d.target.x; })
+                    .attr("y2", function (d) { return d.target.y; });
+            });
+        }
+
+
+        function drawTreeChart(data_str) {
+            let data = JSON.parse(data_str);
+            // let ex_data={'name': 18.0, 'children': [{'name': 13.0, 'parent': 18.0, 'children': [{'name': 9.0, 'parent': 13.0, 'children': [], 'title': '통일 이후 북한지역의 도시개발 방향에 관한 연구'}, {'name': 12.0, 'parent': 13.0, 'children': [{'name': 7.0, 'parent': 12.0, 'children': [], 'title': '새 통일 한국의 영.유아 교육 연구'}, {'name': 11.0, 'parent': 12.0, 'children': [{'name': 8.0, 'parent': 11.0, 'children': [], 'title': '민간 통일 운동의 주요 논의 동향과 통일 정책 수용여부에 관한 연구'}, {'name': 10.0, 'parent': 11.0, 'children': [{'name': 5.0, 'parent': 10.0, 'children': [], 'title': '알기쉬운 통일교육 12주제:프리젠테이션-제1부-통일비전'}, {'name': 6.0, 'parent': 10.0, 'children': [], 'title': '통일 후 남북한경제 한시분리운영방안: 노동 및 사회복지 분야'}]}]}]}]}, {'name': 17.0, 'parent': 18.0, 'children': [{'name': 1.0, 'parent': 17.0, 'children': [], 'title': '통일 비용·편익의 분석모형 구축'}, {'name': 16.0, 'parent': 17.0, 'children': [{'name': 2.0, 'parent': 16.0, 'children': [], 'title': '통일대비를 위한 국내과제'}, {'name': 15.0, 'parent': 16.0, 'children': [{'name': 0.0, 'parent': 15.0, 'children': [], 'title': '한반도 통일에 대한 국제사회의 기대와 역할: 주변 4국과 G20'}, {'name': 14.0, 'parent': 15.0, 'children': [{'name': 3.0, 'parent': 14.0, 'children': [], 'title': '통일대계 탐색연구'}, {'name': 4.0, 'parent': 14.0, 'children': [], 'title': '한반도 통일의 미래와 주변 4국의 기대'}]}]}]}]}]};
+            // data = ex_data;
+            //console.log("Parsed data:", data);  // Log the entire parsed data
+            //console.log("Children:", data.children);
+
+            let width = 600;
+            const dx = width / 4;
+            const dy = width / 10;
+            const margin = { top: 10, right: 40, bottom: 10, left: 40 };
+
+            let diagonal = d3.linkHorizontal().x(d => d['y']).y(d => d['x']);
+
+            const tree = d3.tree().nodeSize([dx, dy]);
+            const root = d3.hierarchy(data);
+
+            root.x0 = dy / 2;
+            root.y0 = 0;
+            root.descendants().forEach((d, i) => {
+                d.num = i;
+                d._children = d.children;
+                // if (d.depth && d.data.name.length !== 7) d.children = null;
+            });
+
+            const svg = d3.select("figure#tree")
+                .append("svg")
+                .attr("id", "svgstart")
+                .attr("viewBox", [-margin.left, -margin.top, width, dx].join())
+                .style("font", "10px sans-serif")
+                .style("user-select", "none");
+
+            const gLink = svg.append("g")
+                .attr("fill", "none")
+                .attr("stroke", "#555")
+                .attr("stroke-opacity", 0.4)
+                .attr("stroke-width", 1.5);
+
+            const gNode = svg.append("g")
+                .attr("cursor", "pointer")
+                .attr("pointer-events", "all");
+
+            function update(source) {
+                const nodes = root.descendants().reverse();
+                const links = root.links();
+
+                // Compute the new tree layout.
+                tree(root);
+
+                let left = root;
+                let right = root;
+                root.eachBefore(node => {
+                    if (node.x < left.x) left = node;
+                    if (node.x > right.x) right = node;
+                });
+
+                const height = right.x - left.x + margin.top + margin.bottom;
+
+                const transition = svg.transition()
+                    .attr("viewBox", [-margin.left, left.x - margin.top, width, height].join())
+                    .tween("resize", window.ResizeObserver ? null : () => () => svg.dispatch("toggle"));
+
+                // Update the nodes…
+                const node = gNode.selectAll("g")
+                    .data(nodes, d => d.num);
+
+                // Enter any new nodes at the parent's previous position.
+                const nodeEnter = node.enter().append("g")
+                    .attr("transform", d => `translate(${source.y0},${source.x0})`)
+                    .attr("fill-opacity", 0)
+                    .attr("stroke-opacity", 0)
+                    .on("click", (event, d) => {
+                        d.children = d.children ? null : d._children;
+                        update(d);
+                    });
+
+                nodeEnter.append("circle")
+                    .attr("r", 2.5)
+                    .attr("fill", d => d._children ? "#555" : "#999")
+                    .attr("stroke-width", 10);
+
+                nodeEnter.append("text")
+                    .attr("dy", "0.31em")
+                    .attr("x", d => d._children ? -6 : 6)
+                    .attr("text-anchor", d => d._children ? "end" : "start")
+                    .text(d => d.data.title ? d.data.title : null)
+                    .clone(true).lower()
+                    .attr("stroke-linejoin", "round")
+                    .attr("stroke-width", 3)
+                    .attr("stroke", "white");
+
+                // Transition nodes to their new position.
+                const nodeUpdate = node.merge(nodeEnter).transition(transition)
+                    .attr("transform", d => `translate(${d.y},${d.x})`)
+                    .attr("fill-opacity", 1)
+                    .attr("stroke-opacity", 1);
+
+                // Transition exiting nodes to the parent's new position.
+                const nodeExit = node.exit().transition(transition).remove()
+                    .attr("transform", d => `translate(${source.y},${source.x})`)
+                    .attr("fill-opacity", 0)
+                    .attr("stroke-opacity", 0);
+
+                // Update the links…
+                const link = gLink.selectAll("path")
+                    .data(links, d => d.target.num);
+
+                // Enter any new links at the parent's previous position.
+                const linkEnter = link.enter().append("path")
+                    .attr("d", d => {
+                        const o = { x: source.x0, y: source.y0 };
+                        return diagonal({ source: o, target: o });
+                    });
+
+                // Transition links to their new position.
+                link.merge(linkEnter).transition(transition)
+                    .attr("d", diagonal);
+
+                // Transition exiting nodes to the parent's new position.
+                link.exit().transition(transition).remove()
+                    .attr("d", d => {
+                        const o = { x: source.x, y: source.y };
+                        return diagonal({ source: o, target: o });
+                    });
+
+                // Stash the old positions for transition.
+                root.eachBefore(d => {
+                    d.x0 = d.x;
+                    d.y0 = d.y;
+                });
+            }
+
+            update(root);
+
+            return svg.node();
+        }
+
+        function drawTopicModeling(data) {
+            // Log the entire data structure
+            console.log("Full data object:", data);
+
+            // Check if 'data' is an array and has elements
+            if (!Array.isArray(data) || data.length === 0) {
+                console.error("Data is not an array or is empty.");
+                return;
+            }
+
+            // Check if the first element has the 'mdsDat' property
+            console.log("First element in data:", data[0]);
+            if (!data[0].hasOwnProperty("mdsDat")) {
+                console.error("First element does not contain 'mdsDat' property.");
+                return;
+            }
+
+            // Log mdsDat to check for 'x' and 'y'
+            console.log("mdsDat object:", data[0].mdsDat);
+
+            // Verify x and y arrays in mdsDat
+            if (!data[0].mdsDat.hasOwnProperty("x") || !Array.isArray(data[0].mdsDat.x)) {
+                console.error("'x' property is missing or not an array in mdsDat.");
+                return;
+            }
+            if (!data[0].mdsDat.hasOwnProperty("y") || !Array.isArray(data[0].mdsDat.y)) {
+                console.error("'y' property is missing or not an array in mdsDat.");
+                return;
+            }
+
+            // Check other expected properties (if any) in mdsDat, like topics or Freq
+            if (!data[0].mdsDat.hasOwnProperty("topics")) {
+                console.warn("'topics' property is missing in mdsDat.");
+            }
+            if (!data[0].mdsDat.hasOwnProperty("Freq")) {
+                console.warn("'Freq' property is missing in mdsDat.");
+            }
+
+            // Check if tinfo exists
+            console.log("tinfo object:", data[0].tinfo);
+            if (!data[0].hasOwnProperty("tinfo")) {
+                console.warn("'tinfo' property is missing in data[0].");
+            }
+
+            // Ensure LDAvis is called correctly
+            if (window.ldavis) {
+                try {
+                    window.ldavis('#ldavis', data[0]); // Assuming #ldavis is the container for your visualization
+                } catch (error) {
+                    console.error("Error calling ldavis:", error);
+                }
+            } else {
+                console.error("LDAvis is not defined. Please ensure ldavis.v3.0.0.js is loaded correctly.");
+            }
+        }
+
+        function drawPieChart(data_str) {
+    // Parse the JSON string into an object
+    let data = JSON.parse(data_str);
+
+    // Set dimensions and radius
+    let width = 100;
+    let height = 100;
+    let radius = Math.min(width, height) / 2;
+
+    // Create an SVG container inside the figure
+    const svg = d3.select("figure#pie")
+        .append("svg")
+        .attr("viewBox", `0 0 ${width} ${height}`);
+
+    // Define custom colors
+    const customColors = ["#1271ff", "#66b3ff", "#4a90e2"];
+
+    // Create a pie generator
+    const pie = d3.pie()
+        .value(d => d.value)
+        .sort(null); // Sort null to keep the order
+
+    // Create an arc generator
+    const arc = d3.arc()
+        .innerRadius(0) // Outer radius of pie chart
+        .outerRadius(radius); // Inner radius (for donut charts, set > 0)
+
+    // Append a group for the pie chart
+    const g = svg.append("g")
+        .attr("transform", `translate(${width / 2}, ${height / 2})`); // Center the pie chart
+
+    // Create the pie chart
+    const arcs = pie(data);
+
+    // Append arcs to the SVG
+    const arcGroups = g.selectAll(".arc")
+        .data(arcs)
+        .enter().append("g")
+        .attr("class", "arc");
+
+    arcGroups.append("path")
+        .attr("d", arc)
+        .attr("fill", (d, i) => customColors[i % customColors.length]) // Fill with custom colors
+        .attr("stroke", "white") // Set the stroke color (border color)
+        .attr("stroke-width", "1px"); // Set the stroke width (border thickness)
+
+
+    // Append labels to the arcs
+    arcGroups.append("text")
+        .attr("transform", d => `translate(${arc.centroid(d)})`) // Position the labels
+        .attr("dy", ".35em") // Vertical alignment
+        .text(d => d.data.label) // Display category names
+        .style("fill", "black") // Set text color
+        .style("text-anchor", "middle") // Center the text
+        .style("font-size", "5px");
+
+    // Draw a tooltip
+    const tooltip = d3.select("figure#pie")
+        .append("div")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("background-color", "white")
+        .style("border", "solid")
+        .style("border-width", "1px")
+        .style("border-radius", "5px")
+        .style("padding", "10px");
+
+    // Show tooltip and change color on mouseover
+    arcGroups.on("mouseover", function (event, d) {
+        tooltip
+            .html("Label: " + d.data.label + "<br>" + "Value: " + d.data.value)
+            .style("opacity", 1)
+            .style("left", (event.pageX + 20) + "px")
+            .style("top", (event.pageY) + "px");
+
+        // Change color on hover
+        d3.select(this).select("path").attr("fill", "red"); // Change color to red on hover
+    })
+    .on("mousemove", function (event) {
+        tooltip
+            .style("left", (event.pageX + 20) + "px")
+            .style("top", (event.pageY) + "px");
+    })
+    .on("mouseout", function (event, d) {
+        tooltip.style("opacity", 0);
+        
+        // Reset color to original
+        const currentIndex = arcs.findIndex(a => a.data.label === d.data.label); // Find the current index
+        d3.select(this).select("path").attr("fill", customColors[currentIndex % customColors.length]); // Reset color
+    });
+}
+
+
+        drawTable('count', JSON.stringify(sampleWCData), 'table1');
+        drawBarChart(JSON.stringify(sampleTFIDFData), 'bar1');
+        drawScatterChart(JSON.stringify(sampleKData));
+        drawScatterWordChart(JSON.stringify(sampleW2VData));
+        drawNetworkChart(JSON.stringify(sampleNetworkData));
+        drawTreeChart(JSON.stringify(sampleTreeData));
+        drawTopicModeling(sampleLDAData);
+        drawPieChart(JSON.stringify(samplePieData));
+        drawTable('ner', JSON.stringify(sampleNERData), 'table2');
+    </script>
+</body>
+
+</html>

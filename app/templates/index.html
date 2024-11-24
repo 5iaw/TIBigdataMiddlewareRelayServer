@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hello, {{user.username}}!</h1>
+    {% for post in posts %}
+    <div><p>{{ post.author.username}} says: <b>{{post.body}} </b></p></div>
+    {% endfor %}
+
+    <div>
+        <br>
+        <h3>File Analysis</h3>
+        <a href="{{ url_for('spark_jobs') }}">
+            <button type="button">Go to Spark Jobs</button>
+        </a>
+    </div>
+{% endblock %}

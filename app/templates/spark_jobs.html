@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Big Data Analysis</title>
+        <style>
+            .job-section {
+                display: block;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            .job-section label, .job-section input, .job-section button {
+                margin-right: 10px;
+            }
+        </style>
+        <script>
+            async function submitJob(endpoint, args) {
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(args)
+                    });
+
+                    // Check if response is ok
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    window.location.href = '/analysis_result';
+                    alert(JSON.stringify(result));
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            }
+
+            function submitWithArgs(endpoint, ...inputIds) {
+                let args = {};
+
+                // Get values from input fields
+                inputIds.forEach(id => {
+                    const inputElement = document.getElementById(id);
+                    if (inputElement) {
+                        args[id] = inputElement.value;
+                    }
+                });
+
+                submitJob(endpoint, args);
+            }
+        </script>
+    </head>
+<body>
+    <h1>File Analysis</h1>
+
+    <!-- WordCount Analysis -->
+    <div class="job-section">
+        <h3>WordCount Analysis</h3> 
+        <label for="display_value">Number of words: </label>
+        <input type="text" id="display_value" placeholder="Enter Display-Value">
+        <button onclick="submitWithArgs('/submit_wordcount', 'display_value')">Submit WordCount Job</button>
+    </div>
+
+    <!-- K-Means Analysis -->
+    <div class="job-section">
+        <h3>K-Means Analysis</h3>
+        <label for="k_value">K-Value: </label>
+        <input type="text" id="k_value" placeholder="Enter K-Value">
+        <button onclick="submitWithArgs('/submit_kmeans', 'k_value')">Submit K-Means Job</button>
+    </div>
+
+    <!-- TF-IDF Analysis -->
+    <div class="job-section">
+        <h3>TF-IDF Analysis</h3>
+        <label for="tfidf_param">TF-IDF Parameter: </label>
+        <input type="text" id="tfidf_param" placeholder="Enter TF-IDF Parameter">
+        <button onclick="submitWithArgs('/submit_tfidf', 'tfidf_param')">Submit TF-IDF Job</button>
+    </div>
+
+    <!-- Word2Vec Analysis -->
+    <div class="job-section">
+        <h3>Word2Vec Analysis</h3>
+        <label for="w2v_param">Word2Vec Parameter: </label>
+        <input type="text" id="w2v_param" placeholder="Enter Word2Vec Parameter">
+        <button onclick="submitWithArgs('/submit_w2v', 'w2v_param')">Submit Word2Vec Job</button>
+    </div>
+
+    <!-- Topic LDA Analysis -->
+    <div class="job-section">
+        <h3>Topic LDA Analysis</h3>
+        <label for="lda_param">Number of Topics: </label>
+        <input type="text" id="lda_param" placeholder="Enter number of topics">
+        <button onclick="submitWithArgs('/submit_lda', 'lda_param')">Submit Topic LDA Analysis</button>
+    </div>
+
+    <!-- Semantic Network Analysis -->
+    <div class="job-section">
+        <h3>Semantic Network Analysis</h3>
+        <label for="sma_param">SMA Parameter: </label>
+        <input type="text" id="sma_wordsnum" placeholder="Enter number of words">
+        <label for="sma_ls">Link Strength: </label>
+        <input type="text" id="sma_ls" placeholder="Enter SMA link strength (%)">
+        <button onclick="submitWithArgs('/submit_sma', 'sma_wordsnum', 'sma_ls')">Submit Semantic Network Analysis</button>
+    </div>
+    
+    <!-- N-Grams Analysis -->
+    <div class="job-section">
+        <h3>N-Grams Analysis</h3>
+        <label for="ngrams_wordsnum">N-Grams Word Number: </label>
+        <input type="text" id="ngrams_wordsnum" placeholder="Enter number of words">
+        <label for="ngrams_param">N Parameter: </label>
+        <input type="text" id="ngrams_param" placeholder="Enter N-Grams N Parameter">
+        <label for="ngrams_ls">Link Strength: </label>
+        <input type="text" id="ngrams_ls" placeholder="Enter N-Grams link strength (%)">
+        <button onclick="submitWithArgs('/submit_ngrams', 'ngrams_wordsnum', 'ngrams_param', 'ngrams_ls')">Submit N-Grams Analysis</button>
+    </div>
+
+    <!-- Hierarchical Clustering Analysis -->
+    <div class="job-section">
+        <h3>Hierarchical Clustering</h3>
+        <label for="hcluster_param">Number of Clusters: </label>
+        <input type="text" id="hcluster_param" placeholder="Enter number of clusters">
+        <button onclick="submitWithArgs('/submit_hcluster', 'hcluster_param')">Submit Hierarchical Clustering</button>
+    </div>
+
+
+    <!-- NER Analysis -->
+    <div class="job-section">
+        <h3>Named Entity Recognition (NER)</h3>
+        <label for="ner_param">Type of entity: </label>
+        <input type="text" id="ner_param" placeholder="Enter type of entity to be extracted: ">
+        <button onclick="submitWithArgs('/submit_ner', 'ner_param')">Submit NER</button>
+    </div>
+
+    <!-- Sentiment Analysis -->
+    <div class="job-section">
+        <h3>Sentiment Analysis</h3>
+        <button onclick="submitWithArgs('/submit_sent')">Submit Sentiment Analysis</button>
+    </div>
+
+    <!-- Form to get job logs -->
+    <h3>Get Job Log</h3>
+    <form action="/log" method="GET">
+        <input type="text" name="batch_id" placeholder="Enter Batch ID" required>
+        <button type="submit">Get Log</button>
+    </form>
+</body>
+</html>
