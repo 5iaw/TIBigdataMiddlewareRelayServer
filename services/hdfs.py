@@ -3,7 +3,7 @@ from hdfs import InsecureClient
 import os
 
 from services.file_system import save_uploaded_file
-knox_url = "https://localhost:8443/gateway/sandbox/webhdfs/v1/"
+knox_url = "https://203.252.112.33:8443/gateway/sandbox/webhdfs/v1/"
 client = InsecureClient(knox_url, user='ubuntu')
 
 import requests

@@ -20,7 +20,7 @@ file_collection = db['files_folders']
 
 # WebHDFS setup
 AUTH = HTTPBasicAuth('guest', 'guest-password')
-WEBHDFS_URL = "https://localhost:8443/gateway/sandbox/webhdfs/v1/"
+WEBHDFS_URL = "https://203.252.112.33:8443/gateway/sandbox/webhdfs/v1/"
 
 def webhdfs_request(path, op, method='GET', data=None, params=None, headers=None, verify=False):
     user_name = 'ubuntu'

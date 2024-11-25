@@ -21,7 +21,7 @@ file_collection = db['files_folders']
 
 # Livy server URL and authentication
 AUTH = HTTPBasicAuth('guest', 'guest-password')
-LIVY_URL = "https://localhost:8443/gateway/sandbox/livy/v1/batches"
+LIVY_URL = "https://203.252.112.33:8443/gateway/sandbox/livy/v1/batches"
 
 def submit_spark_job1(job_name, file_path, args, output_path=None, parent_path=None, owner=None, analysis_type=None):
     payload = {

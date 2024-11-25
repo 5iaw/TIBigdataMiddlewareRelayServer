@@ -7,7 +7,7 @@ from requests.auth import HTTPBasicAuth
 # Authentication for Knox
 AUTH = HTTPBasicAuth('guest', 'guest-password')
 
-WEBHDFS_URL = "https://localhost:8443/gateway/sandbox/webhdfs/v1"
+WEBHDFS_URL = "https://203.252.112.33:8443/gateway/sandbox/webhdfs/v1"
 
 def webhdfs_request(path, op, method='GET', data=None, params=None, headers=None, verify=False, auth=AUTH):
     user_name = 'ubuntu'  # Ensuring the user is 'ubuntu'

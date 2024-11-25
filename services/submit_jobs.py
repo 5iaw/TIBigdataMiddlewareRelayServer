@@ -10,9 +10,9 @@ from hdfs import InsecureClient
 
 # Livy server URL and authentication
 AUTH = HTTPBasicAuth('guest', 'guest-password')
-LIVY_URL = "https://localhost:8443/gateway/sandbox/livy/v1/batches"
+LIVY_URL = "https://203.252.112.33:8443/gateway/sandbox/livy/v1/batches"
 
-knox_url = "https://localhost:8443/gateway/sandbox/webhdfs/v1/"
+knox_url = "https://203.252.112.33:8443/gateway/sandbox/webhdfs/v1/"
 client = InsecureClient(knox_url, user='ubuntu')
 
 saved_file_ids = [] 
