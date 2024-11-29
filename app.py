@@ -590,6 +590,11 @@ def esTest_routes():
 def es_Query_routes():
     return es_query()
 
+
+@app.route('/spark/submit_job', methods=['POST'])
+def route_submit_job():
+    return submit_job()
+
 @app.route('/spark/input-files', methods=['POST'])
 def route_input_files():
     return save_input_files()
@@ -660,7 +665,9 @@ def webhdfs_read_file_route():
         print("Error in webhdfs_read_file_route:", str(e))
         return jsonify({'error': 'Failed to read file from HDFS', 'details': str(e)}), 500
 
-
+@app.route('/spark/test-mongo', methods=['GET'])
+def route_test_mongo():
+    return test_mongo_connection()
 
 import account.FE_flask as FERS
 import account.kubic_sslFile as kubic_ssl
