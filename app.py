@@ -669,6 +669,15 @@ def webhdfs_read_file_route():
 def route_test_mongo():
     return test_mongo_connection()
 
+@app.route('/spark/get-preprocessing', methods=['POST'])
+def route_get_preprocessing():
+    email = "22100409@handong.ac.kr"
+    keyword = "no"
+    savedDate = "2024-08-16T01:52:21.789Z"
+    return getPreprocessing(email, keyword, savedDate)
+    # return jsonify({'docs': docs, 'nTokens': nTokens})
+
+
 import account.FE_flask as FERS
 import account.kubic_sslFile as kubic_ssl
 

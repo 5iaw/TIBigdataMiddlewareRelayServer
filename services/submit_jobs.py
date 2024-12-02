@@ -43,23 +43,20 @@ def getPreprocessing(email, keyword, savedDate):
     # print(email, keyword, savedDate)
     # print(docs[0]['titleList'])
     result = {
-        "tokenList": docs[0]['tokenList'],
-        "nTokens": docs[0]['nTokens']
+        "tokenList": docs[0]['tokenList']
     }
-    return json.dumps(result)
+    return json.dumps(result, ensure_ascii=False)
 
-def getPreprocessingAddTitle(email, keyword, savedDate, optionList):
+def getPreprocessingAddTitle(email, keyword, savedDate):
     doc = dbTM.preprocessing.find({"userEmail":email, "keyword":keyword, "savedDate":savedDate, "addTitle" : "Yes"}).sort("_id", -1).limit(1)# saved date issue
     result = {
         "tokenList": doc[0]['tokenList'],
-        "titleList": doc[0]['titleList'],
-        "nTokens": doc[0]['nTokens']
+        "titleList": doc[0]['titleList']
     }
-    return json.dumps(result)
+    return json.dumps(result, ensure_ascii=False)
 
 def save_content_to_hdfs(json_content, path):
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    hdfs_dest_path = f"{path}/input-files/{timestamp}"  # Path in HDFS, file ID as the filename
+    hdfs_dest_path = f"{path}"  # Path in HDFS, file ID as the filename
     
     try:
         # Write the content to the HDFS destination path
@@ -157,16 +154,16 @@ def submit_job():
             return submit_ngrams_job(owner, inputs, option1, option3)
         case 'kmeans':
             inputs = getPreprocessingAddTitle(owner, keyword, savedDate)
-            return submit_wordcount_job(owner, inputs, option1)
+            return submit_kmeans_job(owner, inputs, option1)
         case 'word2vec':
             inputs = getPreprocessing(owner, keyword, savedDate)
-            return submit_ngrams_job(owner, inputs, option1)
+            return submit_w2v_job(owner, inputs, option1)
         case 'hcluster':
             inputs = getPreprocessingAddTitle(owner, keyword, savedDate)
-            return submit_wordcount_job(owner, inputs)
+            return submit_hclustering_job(owner, inputs)
         case 'topicLDA':
             inputs = getPreprocessing(owner, keyword, savedDate)
-            return submit_ngrams_job(owner, inputs, option1)
+            return submit_lda_job(owner, inputs, option1)
         case 'NER':
             return "Option 3 selected"
         case 'sentiment':
@@ -191,14 +188,14 @@ def submit_wordcount_job(owner, inputs, option1):
 
     output_path =  f"/users/{owner}/analysis/{timestamp}wordcount"
     full_path = f"hdfs://Master1:9000{output_path}"
-    input_path = save_content_to_hdfs(inputs, path)
+    input_path = f"hdfs://Master1:9000{save_content_to_hdfs(inputs, path)}"
     # input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
     # input_files = input_file_paths
     print("Sending input files ")
-    k_value = str(option1)
+    option1 = str(option1)
     payload = {
         "file": "hdfs://Master1:9000/algorithms/new_wc.py",
-        "args": [k_value] + [full_path] + [input_path]
+        "args": [option1] + [full_path] + [input_path]
     }
 
     print("Sending Spark job: ", payload)
@@ -222,10 +219,10 @@ def submit_wordcount_job(owner, inputs, option1):
 #     output_path =  f"/user/{owner}/analysis/{timestamp}wordcount"
 #     full_path = f"hdfs://Master1:9000{output_path}"
 #     input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
-#     k_value = str(data['display_value'])
+#     option1 = str(data['display_value'])
 #     payload = {
 #         "file": "hdfs://Master1:9000/algorithms/new_wc.py",
-#         "args": [k_value] + [full_path] + input_files 
+#         "args": [option1] + [full_path] + input_files 
 #     }
 #     headers = {'Content-Type': 'application/json'}
 #     response = requests.post(LIVY_URL, data=json.dumps(payload), headers=headers, auth=AUTH, verify=False)
@@ -233,166 +230,207 @@ def submit_wordcount_job(owner, inputs, option1):
 #     return handle_response(response, output)
 
 def submit_kmeans_job(owner, inputs, option1):
-    data = request.json
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    owner = data.get('userEmail', 'kubicuser')
+    # owner = data.get('userEmail', 'kubicuser')
 
-    output_path =  f"/user/{owner}/analysis/{timestamp}kmeans"
+    path = f"/users/{owner}/inputs/{timestamp}"
+
+    output_path =  f"/users/{owner}/analysis/{timestamp}kmeans"
     full_path = f"hdfs://Master1:9000{output_path}"
-
-    k_value = str(data.get('k_value', 3))
-    input_file = input_file_paths
-    # input_file = ["hdfs://Master1:9000/example_txt/alice.txt", "hdfs://Master1:9000/example_txt/deer.txt"]
+    input_path = save_content_to_hdfs(inputs, path)
+    # input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
+    # input_files = input_file_paths
+    print("Sending input files ")
+    option1 = str(option1)
     payload = {
         "file": "hdfs://Master1:9000/algorithms/new_kmeans.py",
-        "args": [k_value] + [full_path] + input_file
+        "args": [option1] + [full_path] + [input_path]
     }
+
+    print("Sending Spark job: ", payload)
+
     headers = {'Content-Type': 'application/json'}
     response = requests.post(LIVY_URL, data=json.dumps(payload), headers=headers, auth=AUTH, verify=False)
     output = f"{output_path}/part-00003"
+
     return handle_response(response, output)
 
 def submit_w2v_job(owner, inputs, option1):
-    data = request.json
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    owner = data.get('userEmail', 'kubicuser')
+    # owner = data.get('userEmail', 'kubicuser')
 
-    output_path =  f"/user/{owner}/analysis/{timestamp}w2v"
+    path = f"/users/{owner}/inputs/{timestamp}"
+
+    output_path =  f"/users/{owner}/analysis/{timestamp}w2v"
     full_path = f"hdfs://Master1:9000{output_path}"
-
-    w2v_value = str(data.get('w2v_param', 3))
-    input_file = input_file_paths
-    # input_file = ["hdfs://Master1:9000/example_txt/alice.txt", "hdfs://Master1:9000/example_txt/deer.txt"]
+    input_path = save_content_to_hdfs(inputs, path)
+    # input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
+    # input_files = input_file_paths
+    print("Sending input files ")
+    option1 = str(option1)
     payload = {
         "file": "hdfs://Master1:9000/algorithms/new_w2v.py",
-        "args": [w2v_value] + [full_path] + input_file
+        "args": [option1] + [full_path] + [input_path]
     }
+
+    print("Sending Spark job: ", payload)
+
     headers = {'Content-Type': 'application/json'}
     response = requests.post(LIVY_URL, data=json.dumps(payload), headers=headers, auth=AUTH, verify=False)
     output = f"{output_path}/part-00003"
+
     return handle_response(response, output)
 
 def submit_tfidf_job(owner, inputs, option1):
-    data = request.get_json()
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    owner = data.get('userEmail', 'kubicuser')
+    # owner = data.get('userEmail', 'kubicuser')
 
-    output_path =  f"/user/{owner}/analysis/{timestamp}tfidf"
+    path = f"/users/{owner}/inputs/{timestamp}"
+
+    output_path =  f"/users/{owner}/analysis/{timestamp}tfidf"
     full_path = f"hdfs://Master1:9000{output_path}"
-    
-    k_value = str(data.get('tfidf_param', 3))
-    input_file = input_file_paths
-    # input_file = ["hdfs://Master1:9000/example_txt/alice.txt", "hdfs://Master1:9000/example_txt/deer.txt"]
+    input_path = save_content_to_hdfs(inputs, path)
+    # input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
+    # input_files = input_file_paths
+    print("Sending input files ")
+    option1 = str(option1)
     payload = {
         "file": "hdfs://Master1:9000/algorithms/new_tfidf.py",
-        "args": [k_value] + [full_path] + input_file
+        "args": [option1] + [full_path] + [input_path]
     }
+
+    print("Sending Spark job: ", payload)
+
     headers = {'Content-Type': 'application/json'}
     response = requests.post(LIVY_URL, data=json.dumps(payload), headers=headers, auth=AUTH, verify=False)
     output = f"{output_path}/part-00003"
+
     return handle_response(response, output)
 
 def submit_lda_job(owner, inputs, option1):
-    data = request.get_json()
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    owner = data.get('userEmail', 'kubicuser')
+    # owner = data.get('userEmail', 'kubicuser')
 
-    output_path =  f"/user/{owner}/analysis/{timestamp}lda"
+    path = f"/users/{owner}/inputs/{timestamp}"
+
+    output_path =  f"/users/{owner}/analysis/{timestamp}lda"
     full_path = f"hdfs://Master1:9000{output_path}"
-    
-    k_value = str(data.get('lda_param', 5))
-    input_file = input_file_paths
-    # input_file = ["hdfs://Master1:9000/example_txt/alice.txt", "hdfs://Master1:9000/example_txt/deer.txt"]
+    input_path = save_content_to_hdfs(inputs, path)
+    # input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
+    # input_files = input_file_paths
+    print("Sending input files ")
+    option1 = str(option1)
     payload = {
         "file": "hdfs://Master1:9000/algorithms/new_lda.py",
-        "args": [k_value] + [full_path] + input_file
+        "args": [option1] + [full_path] + [input_path]
     }
+
+    print("Sending Spark job: ", payload)
+
     headers = {'Content-Type': 'application/json'}
     response = requests.post(LIVY_URL, data=json.dumps(payload), headers=headers, auth=AUTH, verify=False)
     output = f"{output_path}/part-00003"
+
     return handle_response(response, output)
 
 def submit_sma_job(owner, inputs, option1, option2):
-    data = request.get_json()
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    owner = data.get('userEmail', 'kubicuser')
+    # owner = data.get('userEmail', 'kubicuser')
 
-    output_path =  f"/user/{owner}/analysis/{timestamp}sma"
+    path = f"/users/{owner}/inputs/{timestamp}"
+
+    output_path =  f"/users/{owner}/analysis/{timestamp}sma"
     full_path = f"hdfs://Master1:9000{output_path}"
-    
-    optionList = str(data.get('optionList', 2))
-    linkStrength = str(data.get('linkStrength', '0.5'))
-    input_file = input_file_paths
-    # input_file = ["hdfs://Master1:9000/example_txt/alice.txt", "hdfs://Master1:9000/example_txt/deer.txt"]
+    input_path = save_content_to_hdfs(inputs, path)
+    # input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
+    # input_files = input_file_paths
+    print("Sending input files ")
+    option1 = str(option1)
+    option2 = str(option2)
     payload = {
         "file": "hdfs://Master1:9000/algorithms/new_sma.py",
-        "args": [optionList, linkStrength] + [full_path] + input_file
+        "args": [option1] + [option2] + [full_path] + [input_path]
     }
+
+    print("Sending Spark job: ", payload)
+
     headers = {'Content-Type': 'application/json'}
     response = requests.post(LIVY_URL, data=json.dumps(payload), headers=headers, auth=AUTH, verify=False)
     output = f"{output_path}/part-00003"
+
     return handle_response(response, output)
 
 def submit_ngrams_job(owner, inputs, option1, option3):
-    data = request.get_json()
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    owner = data.get('userEmail', 'kubicuser')
+    # owner = data.get('userEmail', 'kubicuser')
 
-    output_path =  f"/user/{owner}/analysis/{timestamp}ngrams"
+    path = f"/users/{owner}/inputs/{timestamp}"
+
+    output_path =  f"/users/{owner}/analysis/{timestamp}ngrams"
     full_path = f"hdfs://Master1:9000{output_path}"
-    
-    optionList = str(data.get('optionList', 5))
-    n = str(data.get('n', 2))
-    linkStrength = str(data.get('linkStrength', '0.5'))
-    input_file = input_file_paths
-    # input_file = ["hdfs://Master1:9000/example_txt/alice.txt", "hdfs://Master1:9000/example_txt/deer.txt"]
+    input_path = save_content_to_hdfs(inputs, path)
+    # input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
+    # input_files = input_file_paths
+    print("Sending input files ")
+    option1 = str(option1)
+    option3 = str(option3)
     payload = {
-        "file": "hdfs://Master1:9000/algorithms/ngrams.py",
-        "args": [optionList, n, linkStrength] + [full_path] + input_file
+        "file": "hdfs://Master1:9000/algorithms/new_ngrams.py",
+        "args": [option1] + [option3] + [full_path] + [input_path]
     }
+
+    print("Sending Spark job: ", payload)
+
     headers = {'Content-Type': 'application/json'}
     response = requests.post(LIVY_URL, data=json.dumps(payload), headers=headers, auth=AUTH, verify=False)
     output = f"{output_path}/part-00003"
+
     return handle_response(response, output)
 
 def submit_hclustering_job(owner, inputs):
-    data = request.get_json()
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    owner = data.get('userEmail', 'kubicuser')
+    # owner = data.get('userEmail', 'kubicuser')
 
-    output_path =  f"/user/{owner}/analysis/{timestamp}hclustering"
+    path = f"/users/{owner}/inputs/{timestamp}"
+
+    output_path =  f"/users/{owner}/analysis/{timestamp}hc"
     full_path = f"hdfs://Master1:9000{output_path}"
-    
-    k_value = str(5)
-    input_file = input_file_paths
-    # input_file = ["hdfs://Master1:9000/example_txt/alice.txt", "hdfs://Master1:9000/example_txt/deer.txt"]
+    input_path = save_content_to_hdfs(inputs, path)
+    # input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
+    # input_files = input_file_paths
+    print("Sending input files ")
     payload = {
         "file": "hdfs://Master1:9000/algorithms/new_hc.py",
-        "args": [k_value] + [full_path] + input_file
+        "args": [full_path] + [input_path]
     }
+
+    print("Sending Spark job: ", payload)
+
     headers = {'Content-Type': 'application/json'}
     response = requests.post(LIVY_URL, data=json.dumps(payload), headers=headers, auth=AUTH, verify=False)
     output = f"{output_path}/part-00003"
     return handle_response(response, output)
 
-def submit_ner_job():
-    data = request.get_json()
+def submit_ner_job(owner, inputs, option1):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    owner = data.get('userEmail', 'kubicuser')
+    # owner = data.get('userEmail', 'kubicuser')
 
-    output_path =  f"/user/{owner}/analysis/{timestamp}ner"
+    path = f"/users/{owner}/inputs/{timestamp}"
+
+    output_path =  f"/users/{owner}/analysis/{timestamp}ner"
     full_path = f"hdfs://Master1:9000{output_path}"
-    
-    k_value = "NOUN,PER,ORG,LOC,GPE,PRODUCT"
-    optionList = str(data.get('ner_param', 10))
-
-    input_file = input_file_paths
-
-    # input_file = ["hdfs://Master1:9000/example_txt/copy1.txt"]
+    input_path = save_content_to_hdfs(inputs, path)
+    # input_files = ["hdfs://Master1:9000/example_txt/sample2.txt"]
+    # input_files = input_file_paths
+    print("Sending input files ")
+    option1 = str(option1)
     payload = {
-        "file": "hdfs://Master1:9000/algorithms/ner.py",
-        "args": [optionList, k_value] + [full_path] + input_file
+        "file": "hdfs://Master1:9000/algorithms/new_ner.py",
+        "args": [option1] + [full_path] + [input_path]
     }
+
+    print("Sending Spark job: ", payload)
+
     headers = {'Content-Type': 'application/json'}
     response = requests.post(LIVY_URL, data=json.dumps(payload), headers=headers, auth=AUTH, verify=False)
     output = f"{output_path}/part-00003"
@@ -401,6 +439,7 @@ def submit_ner_job():
 def get_status(batch_id):
     status_url = f"{LIVY_URL}/{batch_id}"
     response = requests.get(status_url, auth=AUTH, verify=False)
+    print(response)
     return handle_response(response)
 
 def get_log(batch_id):
@@ -413,6 +452,7 @@ def handle_response(response, output_path=None):
         result = response.json()
         if output_path:
             result['output_path'] = output_path
+        print(result)
         return jsonify(result), 201
     elif response.status_code == 200:
         result = response.json()
@@ -453,6 +493,7 @@ def get_analysis_result():
 
 
 def hdfs_read_file_route(path):
+    print(path)
     result = webReadFile(path)
     if 'file_content' in result:
         # Return the file content directly as a binary response
