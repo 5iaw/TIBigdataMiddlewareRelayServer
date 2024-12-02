@@ -138,38 +138,37 @@ def submit_job():
 
     print("Received: ", owner, keyword, savedDate, option1, option2, option3, analysis)
 
-    match analysis:
-        case 'count':
-            inputs = getPreprocessing(owner, keyword, savedDate)
-            print("got inputs, going into submit_worcount_job")
-            return submit_wordcount_job(owner, inputs, option1)
-        case 'tfidf':
-            inputs = getPreprocessing(owner, keyword, savedDate)
-            return submit_tfidf_job(owner, inputs, option1)
-        case 'network':
-            inputs = getPreprocessing(owner, keyword, savedDate)
-            return submit_sma_job(owner, inputs, option1, option2)
-        case 'ngrams':
-            inputs = getPreprocessing(owner, keyword, savedDate)
-            return submit_ngrams_job(owner, inputs, option1, option3)
-        case 'kmeans':
-            inputs = getPreprocessingAddTitle(owner, keyword, savedDate)
-            return submit_kmeans_job(owner, inputs, option1)
-        case 'word2vec':
-            inputs = getPreprocessing(owner, keyword, savedDate)
-            return submit_w2v_job(owner, inputs, option1)
-        case 'hcluster':
-            inputs = getPreprocessingAddTitle(owner, keyword, savedDate)
-            return submit_hclustering_job(owner, inputs)
-        case 'topicLDA':
-            inputs = getPreprocessing(owner, keyword, savedDate)
-            return submit_lda_job(owner, inputs, option1)
-        case 'NER':
-            return "Option 3 selected"
-        case 'sentiment':
-            return "Option 3 selected"
-        case _:
-            return "Invalid option"
+    if analysis == 'count':
+        inputs = getPreprocessing(owner, keyword, savedDate)
+        return submit_wordcount_job(owner, inputs, option1)
+    elif analysis == 'tfidf':
+        inputs = getPreprocessing(owner, keyword, savedDate)
+        return submit_tfidf_job(owner, inputs, option1)
+    elif analysis == 'network':
+        inputs = getPreprocessing(owner, keyword, savedDate)
+        return submit_sma_job(owner, inputs, option1, option2)
+    elif analysis == 'ngrams':
+        inputs = getPreprocessing(owner, keyword, savedDate)
+        return submit_ngrams_job(owner, inputs, option1, option3)
+    elif analysis == 'kmeans':
+        inputs = getPreprocessingAddTitle(owner, keyword, savedDate)
+        return submit_kmeans_job(owner, inputs, option1)
+    elif analysis == 'word2vec':
+        inputs = getPreprocessing(owner, keyword, savedDate)
+        return submit_w2v_job(owner, inputs, option1)
+    elif analysis == 'hcluster':
+        inputs = getPreprocessingAddTitle(owner, keyword, savedDate)
+        return submit_hclustering_job(owner, inputs)
+    elif analysis == 'topicLDA':
+        inputs = getPreprocessing(owner, keyword, savedDate)
+        return submit_lda_job(owner, inputs, option1)
+    elif analysis == 'NER':
+        return "Option 3 selected"
+    elif analysis == 'sentiment':
+        return "Option 3 selected"
+    else:
+        return "Invalid option"
+
 
 def submit_wordcount_job(owner, inputs, option1):
     # global saved_file_ids
