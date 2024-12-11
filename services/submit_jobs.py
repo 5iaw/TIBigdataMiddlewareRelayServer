@@ -163,7 +163,7 @@ def submit_job():
         inputs = getPreprocessing(owner, keyword, savedDate)
         return submit_lda_job(owner, inputs, option1)
     elif analysis == 'NER':
-        return "Option 3 selected"
+        return submit_ner_job(owner, inputs, option1)
     elif analysis == 'sentiment':
         return "Option 3 selected"
     else:
@@ -392,6 +392,7 @@ def submit_hclustering_job(owner, inputs):
 
     path = f"/users/{owner}/inputs/{timestamp}"
 
+    option1 = str(5)
     output_path =  f"/users/{owner}/analysis/{timestamp}hc"
     full_path = f"hdfs://Master1:9000{output_path}"
     input_path = save_content_to_hdfs(inputs, path)
@@ -400,7 +401,7 @@ def submit_hclustering_job(owner, inputs):
     print("Sending input files ")
     payload = {
         "file": "hdfs://Master1:9000/algorithms/new_hc.py",
-        "args": [full_path] + [input_path]
+        "args": [option1] + [full_path] + [input_path]
     }
 
     print("Sending Spark job: ", payload)

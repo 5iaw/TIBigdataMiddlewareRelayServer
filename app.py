@@ -677,6 +677,13 @@ def route_get_preprocessing():
     return getPreprocessing(email, keyword, savedDate)
     # return jsonify({'docs': docs, 'nTokens': nTokens})
 
+@app.route('/spark/get-preprocessing-title', methods=['POST'])
+def route_get_preprocessing_add_title():
+    email = "22100409@handong.ac.kr"
+    keyword = "no"
+    savedDate = "2024-08-16T01:52:21.789Z"
+    return getPreprocessingAddTitle(email, keyword, savedDate)
+    # return jsonify({'docs': docs, 'nTokens': nTokens})
 
 import account.FE_flask as FERS
 import account.kubic_sslFile as kubic_ssl
