@@ -590,6 +590,18 @@ def esTest_routes():
 def es_Query_routes():
     return es_query()
 
+@app.route('/es/ping', methods=['GET'])
+def ping_routes():
+    return ping()
+
+@app.route('/es/count',  methods=['POST'])
+def count_routes():
+    return count()
+
+@app.route('/es/search',  methods=['POST'])
+def search_routes():
+    return search()
+
 
 @app.route('/spark/submit_job', methods=['POST'])
 def route_submit_job():
